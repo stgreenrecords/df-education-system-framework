@@ -151,11 +151,14 @@ Before executing commands, changing infrastructure, reading secrets, or using pr
 
 ## Stop conditions
 
-The factory may stop only when:
+The factory session must stop when:
 
+- the current role's work is complete and handoff is documented (a new session is required for the next role);
 - all tasks are `DONE`;
 - all remaining tasks are `BLOCKED`;
 - no task exists;
 - human explicitly says stop;
 - continuing would risk data loss, security exposure, policy violation, or production outage.
+
+**One session = one role. When the role finishes, the session ends. No exceptions.**
 

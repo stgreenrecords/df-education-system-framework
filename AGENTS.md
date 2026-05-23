@@ -6,6 +6,11 @@ This file is the MCP-agnostic entrypoint. Any AI assistant, coding agent, review
 
 Run the Dark Factory SDLC loop exactly as described in `df/`. Do not optimize away role gates. Do not mark work complete without documented validation.
 
+## Strict framework invariants
+
+- Country templates are **data-only**. They may define configuration values, versioned configuration content, and country-specific data, but they must never change framework code, framework structure, database schemas, or API contracts.
+- **No country-specific code change is allowed.** If a requirement appears to need country-specific behavior, solve it through generic configuration/data modeling or raise an architecture decision instead of branching the framework for one country.
+
 ## Required reading order
 
 Before starting or continuing work, read:
@@ -34,12 +39,21 @@ If the user explicitly assigns a role, act as that role. Otherwise infer the rol
 
 If task state is absent, inspect `df/runtime/board.md` and choose the highest-priority actionable task.
 
-## Autonomous continuation rule
+## Single-role-per-session rule (mandatory, no exceptions)
 
-After each role finishes, the agent must hand off to the next role by updating the runtime files and writing explicit next action instructions. If the same AI session can perform the next role, it may switch roles only after recording the handoff.
+**An agent MUST NOT switch to a different role within the same session. One session = one role execution.**
 
-The factory stops only when:
+After the current role finishes, the agent must:
 
+1. Update all runtime files with the current state.
+2. Write a handoff note specifying the next role and next action.
+3. Stop and ask the human to create a new session for the next role.
+
+The agent must NOT execute another role's checklist, combine roles, or justify role-switching for any reason.
+
+The factory stops (session ends) when:
+
+- the current role's work is complete and handoff is documented;
 - there are no actionable tasks;
 - the current work is blocked by missing human decision, credentials, permissions, environment access, or external dependency;
 - a safety, legal, or security concern requires human approval;

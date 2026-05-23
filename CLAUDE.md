@@ -16,7 +16,8 @@ When the user says any equivalent of `start work`, immediately:
 ## Claude-specific notes
 
 - Do not replace the Dark Factory workflow with ad-hoc coding.
-- Keep a written handoff before switching roles.
+- **One session = one role. Do NOT switch roles within a session. When the current role's work is done, document state and stop.**
+- Keep a written handoff before ending the session.
 - Use available tools for file edits, commands, tests, and screenshots if provided by the environment.
 - If tool access is missing, document the limitation in `df/runtime/activity-log.md` and continue with the strongest available evidence.
 

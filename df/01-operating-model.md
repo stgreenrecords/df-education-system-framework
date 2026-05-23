@@ -15,6 +15,27 @@ Dark Factory uses four required roles.
 
 A role owns the task only while the task is in that role's state. Ownership must be documented in `df/runtime/board.md` and the task artifact.
 
+## Single-role-per-session rule (mandatory)
+
+**An agent MUST NOT switch to a different role within the same session. This rule is absolute and has no exceptions.**
+
+One session = one role execution. When an agent completes its work in the current role, it must:
+
+1. Document the final state of the task in runtime files.
+2. Record a handoff note specifying the next role and next action.
+3. Stop and ask the human to create a new session for the next role.
+
+The agent must NOT:
+
+- Execute another role's checklist in the same session.
+- "Continue as" a different role after finishing the current role.
+- Combine SA + Dev, Dev + QA, QA + PO, or any other role combination in one session.
+- Justify role-switching by claiming efficiency, simplicity, or continuity.
+
+If work is complete for the current role and no more actions remain for that role, the session ends. A new session must be started for the next role to act.
+
+This ensures traceability, prevents self-approval, and maintains separation of concerns across the SDLC.
+
 ## Standard flow
 
 ```text

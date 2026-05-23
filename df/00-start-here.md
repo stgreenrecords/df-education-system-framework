@@ -30,11 +30,13 @@ The exact wording does not matter. If the intent is to begin or continue autonom
 6. Read the relevant role file in `df/roles/`.
 7. Inspect `df/runtime/board.md`.
 8. Pick the highest-priority task that is not blocked.
-9. Create or update a task folder under `df/artifacts/{task-id}/`.
-10. Execute the responsible role's checklist.
-11. Update runtime documentation.
-12. Hand off to the next role.
-13. Continue until the factory has no actionable tasks or is blocked.
+9. Determine the responsible role from the task state.
+10. **Execute ONLY that one role.** Do not switch roles within this session.
+11. Create or update a task folder under `df/artifacts/{task-id}/`.
+12. Execute the responsible role's checklist.
+13. Update runtime documentation.
+14. Write a handoff note for the next role.
+15. **Stop the session.** Ask the human to start a new session for the next role.
 
 ## Task selection order
 
