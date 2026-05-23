@@ -10,18 +10,20 @@ This file defines task states and allowed transitions. Agents must update `df/ru
 | `INTAKE` | `sa` | Task is being triaged and refined from raw input. |
 | `REFINEMENT_IN_PROGRESS` | `sa` | SA is generating acceptance criteria and asking clarifying questions. |
 | `REFINEMENT_QUESTIONS` | `po` / human | Questions have been posted; PO or human product authority must answer before work continues. |
-| `REFINED` | factory | Questions answered or low-risk assumptions documented, acceptance criteria written, task is ready for architecture or dev. |
+| `REFINED` | factory | Questions answered or low-risk assumptions documented, acceptance criteria written, task is ready for architecture or lane routing. |
 | `NEEDS_ARCHITECTURE` | `sa` | Task needs solution design before development. |
 | `ARCHITECTURE_IN_PROGRESS` | `sa` | SA is designing or reviewing the approach. |
-| `READY_FOR_DEV` | `dev` | Task can be implemented. |
-| `DEV_IN_PROGRESS` | `dev` | Dev is implementing the task. |
+| `READY_FOR_DESIGN` | `designer` | UI/UX design input is required before frontend implementation. |
+| `DESIGN_IN_PROGRESS` | `designer` | Designer is producing or revising the design package. |
+| `READY_FOR_DEV` | delivery lane | Task can be implemented or populated by exactly one lane owner: `backend-dev`, `frontend-dev`, `devops`, or `data-engineer`. |
+| `DEV_IN_PROGRESS` | delivery lane | The lane owner is implementing or populating the task. |
 | `READY_FOR_QA` | `qa` | Dev work is complete and ready for QA. |
 | `QA_IN_PROGRESS` | `qa` | QA is verifying the task. |
 | `QA_FAILED` | `qa` | QA found issues. |
 | `READY_FOR_PO` | `po` | QA passed and PO review is needed. |
 | `PO_REVIEW` | `po` | PO is performing E2E/product validation. |
 | `PO_REJECTED` | `po` | PO rejected the result. |
-| `RETURNED_TO_DEV` | `dev` | Rework is required. |
+| `RETURNED_TO_DEV` | delivery lane | Rework is required by the original lane owner unless SA reroutes it. |
 | `BLOCKED` | human/factory | Work cannot continue without external input. |
 | `DONE` | factory | Task accepted and complete. |
 | `NO_TASKS` | factory | No actionable work exists. |
@@ -38,12 +40,17 @@ This file defines task states and allowed transitions. Agents must update `df/ru
 | `REFINEMENT_IN_PROGRESS` | `REFINED` | No critical questions remain; acceptance criteria and assumptions written. |
 | `REFINEMENT_QUESTIONS` | `REFINEMENT_IN_PROGRESS` | Answers provided with answer authority; SA resumes refinement. |
 | `REFINED` | `NEEDS_ARCHITECTURE` | Architecture needed reason. |
+| `REFINED` | `READY_FOR_DESIGN` | UI-facing frontend work is ready for designer input before implementation. |
 | `REFINED` | `READY_FOR_DEV` | No architecture needed reason. |
 | `NEEDS_ARCHITECTURE` | `ARCHITECTURE_IN_PROGRESS` | SA start note. |
-| `ARCHITECTURE_IN_PROGRESS` | `READY_FOR_DEV` | Solution design artifact. |
-| `READY_FOR_DEV` | `DEV_IN_PROGRESS` | Dev start note. |
+| `ARCHITECTURE_IN_PROGRESS` | `READY_FOR_DEV` | Solution design artifact plus assigned delivery lane and subdashboard entry. |
+| `ARCHITECTURE_IN_PROGRESS` | `READY_FOR_DESIGN` | UI-facing frontend task lacks accepted design package; design scope and subdashboard entry created. |
+| `ARCHITECTURE_IN_PROGRESS` | `READY_FOR_QA` | Documentation/process-only change completed by SA; no delivery lane required; QA handoff explains why. |
+| `READY_FOR_DESIGN` | `DESIGN_IN_PROGRESS` | Designer start note and design artifact path. |
+| `DESIGN_IN_PROGRESS` | `READY_FOR_DEV` | Design package complete, with affected frontend scope and frontend subdashboard entry or SA handoff. |
+| `READY_FOR_DEV` | `DEV_IN_PROGRESS` | Lane start note in the lane-owned artifact folder. |
 | `RETURNED_TO_DEV` | `DEV_IN_PROGRESS` | Rework plan. |
-| `DEV_IN_PROGRESS` | `READY_FOR_QA` | Implementation summary and dev test evidence. |
+| `DEV_IN_PROGRESS` | `READY_FOR_QA` | Implementation summary and lane-specific test evidence. |
 | `READY_FOR_QA` | `QA_IN_PROGRESS` | QA start note and test plan. |
 | `QA_IN_PROGRESS` | `QA_FAILED` | Defect report. |
 | `QA_FAILED` | `RETURNED_TO_DEV` | QA handoff with reproduction steps. |
@@ -71,6 +78,20 @@ When changing state, append this block to `df/runtime/activity-log.md`:
 - Evidence: {links/files}
 - Next: {next role/action}
 ```
+
+For delivery states, `{role}` must be `designer`, `backend-dev`, `frontend-dev`, `devops`, or `data-engineer` as appropriate; do not use the retired generic `dev` owner for new work.
+
+## Implementation lane routing
+
+`READY_FOR_DEV`, `DEV_IN_PROGRESS`, and `RETURNED_TO_DEV` use the same state names across all delivery lanes. The responsible role is resolved from:
+
+1. `Owner role` in `df/runtime/board.md`;
+2. exactly one matching subdashboard entry in `df/runtime/backend-dev-board.md`, `df/runtime/frontend-dev-board.md`, `df/runtime/devops-board.md`, or `df/runtime/data-engineer-board.md`;
+3. lane-owned artifacts under `df/artifacts/{task-id}/backend/`, `df/artifacts/{task-id}/frontend/{website|android|ios}/`, `df/artifacts/{task-id}/devops/`, or `df/artifacts/{task-id}/data/`.
+
+`READY_FOR_DESIGN` and `DESIGN_IN_PROGRESS` are resolved from `df/runtime/design-board.md` and design-owned artifacts under `df/artifacts/{task-id}/design/`.
+
+If a task requires multiple lanes, SA must split it into child lane tasks before any delivery role starts. A parent task may remain in the main board as a coordination item while children move independently through design, implementation/data population, QA, and PO.
 
 ## Blocker handling
 

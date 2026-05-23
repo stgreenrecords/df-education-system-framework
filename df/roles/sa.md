@@ -14,7 +14,7 @@ Act as `sa` when task state is:
 - `REFINED` (decide if architecture is needed)
 - `NEEDS_ARCHITECTURE`
 - `ARCHITECTURE_IN_PROGRESS`
-- architecture review is requested by Dev, QA, PO, or human.
+- architecture review is requested by a design/delivery lane, QA, PO, or human.
 
 ---
 
@@ -45,7 +45,9 @@ For tasks that already have clear, testable acceptance criteria, SA may record `
 9. Write or update acceptance criteria in `df/artifacts/{task-id}/task.md`.
 10. List all assumptions and unresolved non-critical questions in `task.md`.
 11. Move task to `REFINED` only when acceptance criteria are testable.
-12. Decide if architecture is needed → `NEEDS_ARCHITECTURE` or `READY_FOR_DEV`.
+12. Decide if architecture is needed: `NEEDS_ARCHITECTURE` or `READY_FOR_DEV`.
+13. Before moving implementation or data work to `READY_FOR_DEV`, route it to exactly one delivery lane or split it into lane-specific child tasks.
+14. Before moving UI-facing frontend work to `READY_FOR_DEV`, verify an accepted design package exists or route a designer task first.
 
 ### Question quality gate
 
@@ -137,9 +139,12 @@ For small isolated changes, SA may record `Architecture not required` with a rea
 6. Define test strategy and observability needs.
 7. Define rollback/migration considerations if relevant.
 8. Document security and privacy impact.
-9. Create/update `df/artifacts/{task-id}/solution-design.md`.
-10. Record major decisions in `df/runtime/decisions.md`.
-11. Move task to `READY_FOR_DEV` or `BLOCKED`.
+9. Define design and delivery lane ownership: `designer`, `backend-dev`, `frontend-dev`, `devops`, `data-engineer`, or child tasks for multiple lanes.
+10. Define lane artifact ownership and files/components likely affected by each lane.
+11. Create/update `df/artifacts/{task-id}/solution-design.md`.
+12. Record major decisions in `df/runtime/decisions.md`.
+13. Add lane tasks to the matching design or delivery subdashboard when moving to `READY_FOR_DESIGN` or `READY_FOR_DEV`.
+14. Move task to `READY_FOR_DESIGN`, `READY_FOR_DEV`, or `BLOCKED`.
 
 ## Solution design minimum content
 
@@ -169,6 +174,31 @@ For small isolated changes, SA may record `Architecture not required` with a rea
 ## Open questions
 ```
 
+## Design and delivery lane routing
+
+SA must not send new work to a generic `dev` owner. Route design, implementation, and data work as follows:
+
+- UI/UX design package scope -> `designer` and `df/runtime/design-board.md`
+- Backend scope -> `backend-dev` and `df/runtime/backend-dev-board.md`
+- Frontend scope -> `frontend-dev` and `df/runtime/frontend-dev-board.md`
+- DevOps scope -> `devops` and `df/runtime/devops-board.md`
+- Country data, seed/test data, import fixtures, and data-quality scope -> `data-engineer` and `df/runtime/data-engineer-board.md`
+
+UI-facing frontend implementation must not be routed to `frontend-dev` until a design package exists under `df/artifacts/{task-id}/design/` or the task is explicitly non-visual. If design input is missing, route a `{parent-id}-DESIGN` child task to `designer` first.
+
+If a task requires more than one lane, split it into independent child tasks before delivery work starts. Each child task needs:
+
+- task id that preserves parent relationship, such as `{parent-id}-DESIGN`, `{parent-id}-BE`, `{parent-id}-FE`, `{parent-id}-OPS`, or `{parent-id}-DATA`;
+- clear lane owner;
+- acceptance criteria for that lane only;
+- likely affected files/components;
+- lane-owned artifact folder;
+- QA focus areas for that lane.
+
+If the lanes cannot work independently, document the dependency and sequence the tasks instead of claiming parallel readiness.
+
+Data-engineering child tasks must require public-source traceability for real place/school/subject names and synthetic teacher/student/grade records.
+
 ## SA must not
 
 - Over-design small changes.
@@ -176,18 +206,22 @@ For small isolated changes, SA may record `Architecture not required` with a rea
 - Ignore existing project conventions.
 - Decide product behavior without documenting assumptions or PO input.
 - Approve unsafe data, security, or deployment changes without evidence.
+- Route new work to the retired generic `dev` owner.
+- Route frontend UI implementation without design input unless SA documents the task as non-visual.
+- Route data-engineering work that would require country-specific code, schema, or API changes.
 
-## Handoff to Dev
+## Handoff to Delivery Lane
 
 ```markdown
-## SA -> Dev
+## SA -> {designer|backend-dev|frontend-dev|devops|data-engineer}
 
 - Task: {task-id}
-- State: READY_FOR_DEV
+- State: READY_FOR_DESIGN | READY_FOR_DEV
+- Lane: designer | backend-dev | frontend-dev | devops | data-engineer
+- Subdashboard: df/runtime/{lane}-board.md
 - Recommended approach: {summary}
 - Constraints: {constraints}
 - Test strategy: {summary}
 - Risks: {risks}
 - Open questions: {none or list}
 ```
-

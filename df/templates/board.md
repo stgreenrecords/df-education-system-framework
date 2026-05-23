@@ -8,6 +8,18 @@
 
 See `df/02-state-machine.md`.
 
+## Implementation subdashboards
+
+Development work must be routed to one of:
+
+- `df/runtime/design-board.md`
+- `df/runtime/backend-dev-board.md`
+- `df/runtime/frontend-dev-board.md`
+- `df/runtime/devops-board.md`
+- `df/runtime/data-engineer-board.md`
+
+Use `df/templates/dev-subdashboard.md` when creating or repairing those files.
+
 ## Priority legend
 
 - P0: production outage/security incident

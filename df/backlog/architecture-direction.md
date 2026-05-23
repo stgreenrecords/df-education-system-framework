@@ -12,12 +12,15 @@ The system starts as a well-structured modular monolith with clear module bounda
 |---|---|---|
 | Language | Java (latest LTS) | Enterprise-grade, large talent pool, strong ecosystem |
 | Framework | Spring Boot + Spring Security + Spring Data | Mature, well-documented, modular |
+| Website frontend | Next.js + React | Server-rendered/web-app capable, React ecosystem, strong routing and build tooling |
+| Mobile frontend | Independent Android and iOS projects | Native mobile delivery can evolve independently from the website and from each other |
 | Database | PostgreSQL | Open-source, robust, JSON support for flexible config |
 | API style | REST + OpenAPI 3.x contracts | Standard, tooling-rich, API-first design |
 | Event system | Spring Application Events (internal), Kafka/RabbitMQ (external, later) | Decoupled extension points |
 | Auth | Spring Security + OAuth2/OIDC | Standards-based, supports external IdPs |
-| Build | Gradle or Maven | Standard Java build tools |
-| Containerization | Docker, OCI images | Portable, sovereign-friendly |
+| Build | Maven | Human-selected standard Java build tool |
+| Containerization | OCI images built/tested with Podman-compatible workflows | Open-source, portable, sovereign-friendly |
+| Deployment/IaC | Kubernetes-compatible manifests + OpenTofu-compatible IaC modules | Scalable across AWS, Azure, Google Cloud, private cloud, and on-premises targets |
 | Docs | OpenAPI (Swagger), Markdown | Machine-readable and human-readable |
 
 ## Architecture principles
@@ -55,6 +58,26 @@ education-framework/
 └── common/                  # Shared utilities, DTOs, events, exceptions
 ```
 
+## Frontend structure
+
+Frontend delivery is split into three independent projects under the frontend implementation lane:
+
+```text
+frontend/
+|-- website/   # Next.js + React website application
+|-- android/   # Android mobile application project
+`-- ios/       # iOS mobile application project
+```
+
+Rules:
+
+- `frontend/website` uses Next.js + React.
+- `frontend/android` and `frontend/ios` are independent mobile application projects.
+- Mobile applications are the last frontend priority by default. Website work should be delivered first unless PO/SA explicitly promotes mobile work.
+- Each frontend project must be buildable, testable, and deployable without requiring the other frontend projects.
+- Shared user-visible behavior must come from backend APIs, OpenAPI contracts, generated clients, design tokens, or explicitly approved shared packages.
+- Do not hide platform-specific coupling through direct source imports between website, Android, and iOS projects.
+
 ## Deployment model
 
 ```text
@@ -85,6 +108,22 @@ education-framework/
 │  Support/Advisory ──→ Country requests  │
 └─────────────────────────────────────────┘
 ```
+
+## Containerization and cloud portability
+
+Containerization is a Phase 1 foundation concern, not a post-MVP hardening task. `STORY-010` should keep the Maven/Spring Boot application container-ready; `STORY-011` should make database configuration container-aware; `STORY-022` should add the first Podman-compatible OCI image; and `STORY-023` should add the Kubernetes/IaC deployment baseline before deep feature implementation.
+
+Architecture direction:
+
+- Use OCI images as the portable release artifact.
+- Prefer Podman for open-source local/self-hosted build and run workflows.
+- Avoid Docker-daemon-specific assumptions in build, test, and deployment documentation.
+- Use Kubernetes-compatible manifests/templates as the scalable deployment contract.
+- Keep application source code cloud-neutral.
+- Put AWS, Azure, Google Cloud, private cloud, and on-prem differences into provider-specific IaC modules and deployment overlays.
+- Prefer OpenTofu-compatible IaC for the open-source path, while allowing Terraform where a country/ministry standard requires it.
+
+The same application image and source code should run across providers. The IaC cannot be fully identical across providers because networking, registries, managed databases, IAM, load balancers, and secret stores differ.
 
 ## Security architecture
 
@@ -170,5 +209,5 @@ education-framework/
 | Message broker | Kafka / RabbitMQ / Spring Events only | SA |
 | File storage | Local / S3-compatible / country-operated object store | SA |
 | CI/CD tooling | GitHub Actions / GitLab CI / Jenkins (country choice) | Dev |
-| Container orchestration | Kubernetes / Docker Compose / bare metal (country choice) | SA |
+| Container orchestration | Kubernetes-compatible baseline with Podman for local/self-hosted workflows | SA |
 

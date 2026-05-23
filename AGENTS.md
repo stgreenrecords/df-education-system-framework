@@ -23,6 +23,32 @@ Before starting or continuing work, read:
 6. Your role file in `df/roles/`
 7. Current runtime files in `df/runtime/`
 
+## Delivery role lanes
+
+Dark Factory has four delivery roles for implementation/data work instead of one generic developer role:
+
+| Role | Short name | Primary scope |
+|---|---|---|
+| Backend Developer | `backend-dev` | Backend services, domain/application modules, persistence, migrations, backend APIs, and backend tests. |
+| Frontend Developer | `frontend-dev` | Website, Android, and iOS frontend projects, client behavior, frontend assets, accessibility, and frontend tests. |
+| DevOps Engineer | `devops` | Build/deploy automation, containers, CI/CD, infrastructure-as-code, environment configuration, and deployment evidence. |
+| Data Engineer | `data-engineer` | Country data templates, seed/test datasets, import fixtures, source traceability, and data-quality evidence. |
+
+Every task entering implementation or data population must be routed to exactly one delivery lane, or split by SA into independent lane-specific child tasks before work starts. Lane tasks are tracked in:
+
+- `df/runtime/backend-dev-board.md`
+- `df/runtime/frontend-dev-board.md`
+- `df/runtime/devops-board.md`
+- `df/runtime/data-engineer-board.md`
+
+Parallel lane work is allowed only when the lane tasks do not touch the same files, components, infrastructure, environments, or acceptance criteria.
+
+Frontend lane tasks must also name one frontend project scope: `frontend/website`, `frontend/android`, or `frontend/ios`. The website frontend uses Next.js + React. The three frontend projects are independent projects and must not require each other to build, test, or deploy. Mobile application work (`frontend/android` and `frontend/ios`) is the last frontend priority unless explicitly promoted by PO/SA.
+
+Frontend implementation that changes UI, layout, pages, screens, visual states, or user-visible markup requires a designer-provided design package first. If `frontend-dev` starts a task and no design artifact is provided, the frontend task is `BLOCKED`; `frontend-dev` must document the missing design input and hand off for `designer` work instead of implementing the UI from scratch.
+
+Data engineering work may populate country-specific data only as data/configuration. City, district, school, and subject names must be true and traceable to public sources. Teacher names, student names, and individual grade records must be fake/synthetic and must not be copied from real people or production records.
+
 ## Role selection
 
 If the user explicitly assigns a role, act as that role. Otherwise infer the role from the current task state:
@@ -32,12 +58,13 @@ If the user explicitly assigns a role, act as that role. Otherwise infer the rol
 | `OPEN`, `INTAKE`, `REFINEMENT_IN_PROGRESS` | `sa` |
 | `REFINEMENT_QUESTIONS` | `po` |
 | `REFINED`, `NEEDS_ARCHITECTURE`, `ARCHITECTURE_REVIEW` | `sa` |
-| `READY_FOR_DEV`, `RETURNED_TO_DEV` | `dev` |
+| `READY_FOR_DESIGN`, `DESIGN_IN_PROGRESS` | `designer` |
+| `READY_FOR_DEV`, `DEV_IN_PROGRESS`, `RETURNED_TO_DEV` | `backend-dev`, `frontend-dev`, `devops`, or `data-engineer` from the task owner role and lane subdashboard |
 | `READY_FOR_QA`, `QA_IN_PROGRESS`, `QA_FAILED` | `qa` |
 | `READY_FOR_PO`, `PO_REVIEW`, `PO_REJECTED` | `po` |
 | `DONE`, `BLOCKED`, `NO_TASKS` | Follow orchestration rules |
 
-If task state is absent, inspect `df/runtime/board.md` and choose the highest-priority actionable task.
+If task state is absent, inspect `df/runtime/board.md` plus design and delivery subdashboards and choose the highest-priority actionable task.
 
 ## Single-role-per-session rule (mandatory, no exceptions)
 
@@ -65,6 +92,8 @@ Every meaningful action must update at least one runtime artifact:
 
 - `df/runtime/activity-log.md`
 - `df/runtime/board.md`
+- `df/runtime/design-board.md` for design tasks
+- `df/runtime/backend-dev-board.md`, `df/runtime/frontend-dev-board.md`, `df/runtime/devops-board.md`, or `df/runtime/data-engineer-board.md` for delivery-lane tasks
 - task-specific artifacts under `df/artifacts/{task-id}/`
 
 Use templates from `df/templates/` whenever possible.

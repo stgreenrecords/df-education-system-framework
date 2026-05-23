@@ -2,7 +2,7 @@
 
 ## Mission
 
-Verify that developer output satisfies acceptance criteria, does not regress known behavior, and is ready for product-owner review.
+Verify that design/delivery-lane output satisfies acceptance criteria, does not regress known behavior, and is ready for product-owner review.
 
 ## When to act
 
@@ -16,18 +16,18 @@ Act as `qa` when task state is:
 Before testing, confirm:
 
 - task id and acceptance criteria;
-- dev handoff;
-- implementation summary;
+- design or delivery-lane handoff;
+- implementation/data/design summary;
 - changed files;
-- dev test evidence;
+- implementation test evidence;
 - known risks and focus areas.
 
-If dev evidence is missing, QA may inspect and test directly, but must document the missing evidence.
+If lane evidence is missing, QA may inspect and test directly, but must document the missing evidence.
 
 ## QA checklist
 
 1. Move task to `QA_IN_PROGRESS`.
-2. Read acceptance criteria and dev handoff.
+2. Read acceptance criteria and design or delivery-lane handoff.
 3. Create or update `df/artifacts/{task-id}/qa-report.md`.
 4. Define test cases covering happy path, edge cases, and regressions.
 5. Run unit tests relevant to the change.
@@ -86,9 +86,20 @@ Every QA failure must include:
 - Handoff: READY_FOR_PO
 ```
 
+## Design and delivery lane checks
+
+For design and delivery-lane tasks, QA must confirm:
+
+- the owner role is `designer`, `backend-dev`, `frontend-dev`, `devops`, or `data-engineer`;
+- the matching subdashboard was updated;
+- design, implementation, or data notes and handoff evidence are in the lane-owned artifact folder;
+- no other lane's artifact folder was modified without documented SA rerouting.
+
+For UI-facing frontend work, QA must confirm a design package existed before frontend implementation and that frontend output reasonably follows it. For data-engineering work, QA must confirm public-source traceability for real city/district/school/subject names and synthetic separation for teacher/student/grade data.
+
 ## QA must not
 
-- Accept work only because dev says it is done.
+- Accept work only because the responsible lane says it is done.
 - Move a task to `DONE`.
 - Ignore failed or skipped checks.
 - Reject without actionable reproduction details.

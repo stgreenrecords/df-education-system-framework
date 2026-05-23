@@ -9,6 +9,7 @@ Keep the SDLC moving after the human starts the factory. Agents should not wait 
 ```text
 while factory is running:
   load board
+  load design and delivery subdashboards
   choose highest-priority actionable task
   choose role from task state
   execute role checklist
@@ -78,17 +79,91 @@ Sort actionable tasks by:
 6. oldest task;
 7. smallest safe task.
 
+When design, implementation, or data work is involved, sort lane subdashboard items together with the main board. A design task in `READY_FOR_DESIGN` outranks dependent frontend implementation work. A lane task in `RETURNED_TO_DEV` outranks new `READY_FOR_DEV` lane work in the same priority band.
+
+## Design and delivery lane routing rules
+
+Dark Factory has one design lane and four delivery lanes:
+
+- `designer` in `df/runtime/design-board.md`
+- `backend-dev` in `df/runtime/backend-dev-board.md`
+- `frontend-dev` in `df/runtime/frontend-dev-board.md`
+- `devops` in `df/runtime/devops-board.md`
+- `data-engineer` in `df/runtime/data-engineer-board.md`
+
+Before a task moves to `READY_FOR_DEV`, SA must assign exactly one delivery lane or split the task into child lane tasks. UI-facing frontend work must have an accepted design package or a prior designer task. Use the generic delivery states (`READY_FOR_DEV`, `DEV_IN_PROGRESS`, `READY_FOR_QA`, `RETURNED_TO_DEV`) with the lane owner recorded in the board and subdashboard.
+
+Routing guidance:
+
+- Route server-side modules, domain logic, persistence, migrations, backend APIs, and backend tests to `backend-dev`.
+- Route UI code, client behavior, frontend assets, accessibility, and frontend tests to `frontend-dev`, and include one affected scope: `frontend/website`, `frontend/android`, or `frontend/ios`.
+- Route build/deploy automation, containers, CI/CD, infrastructure-as-code, environment configuration, observability wiring, and deployment evidence to `devops`.
+- Route country data templates, seed/test datasets, import fixtures, source mapping, and data-quality checks to `data-engineer`.
+- Route UI/UX design packages, static HTML markup guidance, wireframes, interaction states, responsive notes, accessibility expectations, and visual assets to `designer` before frontend implementation.
+- If a task touches more than one lane, split it into lane-specific child tasks unless the work is inseparable.
+- If a lane task needs a shared file owned by another lane or a root-level shared file, document the dependency and hand off to SA for sequencing or task redesign.
+
 ## Parallel work rules
 
 Agents may work in parallel only when tasks do not touch the same files, components, infrastructure, or acceptance criteria.
 
+Designer, backend, frontend, DevOps, and data-engineering lane tasks may run at the same time only when SA has documented independent scope and each lane has a separate subdashboard entry and lane-owned artifact folder. Frontend implementation may not run in parallel with a design task that is still defining the same UI acceptance criteria or markup.
+
 Parallel work is forbidden when:
 
 - tasks modify the same code area;
-- architecture is not stable;
+- architecture or required design is not stable;
 - one task blocks another;
 - the repository has unresolved merge conflicts;
-- shared test environments cannot isolate changes.
+- shared test environments or seed datasets cannot isolate changes.
+- lane tasks need to edit the same runtime artifact, notes file, handoff file, root build file, CI file, deployment environment, dataset, design package, or acceptance criteria.
+
+## Lane documentation rules
+
+Delivery lanes must not share mutable implementation/data/design files. Each lane writes only inside its lane artifact folder:
+
+- `df/artifacts/{task-id}/design/`
+- `df/artifacts/{task-id}/backend/`
+- `df/artifacts/{task-id}/frontend/`
+- `df/artifacts/{task-id}/devops/`
+- `df/artifacts/{task-id}/data/`
+
+Shared files are updated only by the role that currently owns the task state. A lane that discovers cross-lane impact records it in its lane notes and stops for SA coordination if continuing would create file, scope, or evidence conflicts.
+
+## Frontend project routing
+
+Frontend work has three independent project scopes under the `frontend-dev` lane:
+
+- Website: `frontend/website`, using Next.js + React.
+- Android: `frontend/android`, last-priority frontend work by default.
+- iOS: `frontend/ios`, last-priority frontend work by default.
+
+SA must split multi-platform frontend features into independent child tasks when the platforms can be implemented separately. Sequence `frontend/website` before mobile child tasks unless PO/SA explicitly promotes mobile. Frontend parallel work is forbidden when website, Android, and iOS tasks need the same mutable artifact, generated client, design-token package, release configuration, or acceptance criterion at the same time.
+
+## Frontend design gate
+
+For UI-facing frontend work, `designer` must produce or update a design package before `frontend-dev` implements UI code. The design package belongs under `df/artifacts/{task-id}/design/` and should include enough concrete input for implementation, such as HTML/static markup, wireframes, component states, responsive behavior, accessibility expectations, assets, copy, and design-token guidance.
+
+If `frontend-dev` starts a UI task without a design package, it must:
+
+1. document the missing design input in its frontend lane notes;
+2. mark the work `BLOCKED` with blocker owner `designer` or `product`, depending on whether design execution or product decision is missing;
+3. update runtime files with a handoff requesting designer action;
+4. avoid implementing the visible UI until design evidence exists.
+
+Non-visual frontend tasks may skip designer input only when SA explicitly documents that the task changes no user-visible UI.
+
+## Data engineering rules
+
+Data engineering tasks are data-only and must preserve the no-country-specific-code invariant. `data-engineer` may create or update country templates, seed data, test fixtures, import mappings, and data-quality evidence, but must not alter framework code, schemas, API contracts, or runtime behavior for one country.
+
+For country-specific data:
+
+- city, district, school, and subject names must be true and traceable to public sources;
+- source evidence must include URL/source name, retrieval date, license/usage note when available, and transformation notes;
+- teacher names, student names, and individual grade records must be synthetic;
+- synthetic personal data must be clearly labeled and generated without copying real people from public directories or production records;
+- QA must verify source traceability and synthetic/real-data separation.
 
 ## Handoff rules
 
@@ -100,7 +175,7 @@ Every handoff must include:
 - files changed or artifacts created;
 - tests run and results;
 - known risks;
-- next role checklist;
+- next role checklist, including lane owner when the next role is an implementation role;
 - explicit acceptance or rejection criteria.
 
 Use `df/templates/handoff.md`.
@@ -111,8 +186,8 @@ If QA or PO rejects work:
 
 1. Create/update a defect report in the task artifact folder.
 2. Move task to `RETURNED_TO_DEV`.
-3. Dev must fix root cause, not only the visible symptom.
-4. Dev must add or update tests proving the defect is fixed when feasible.
+3. The lane owner must fix root cause, not only the visible symptom.
+4. The lane owner must add or update tests proving the defect is fixed when feasible.
 5. The task must go through QA and PO again.
 
 ## Evidence hierarchy

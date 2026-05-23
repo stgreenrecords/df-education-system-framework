@@ -50,11 +50,11 @@ Acceptance criteria:
 ### STORY-012 — Implement OpenAPI contract generation
 
 Type: Story
-Owner role: Dev
+Owner role: backend-dev
 Priority: High
 Phase: 1
 Epic: EPIC-01
-Status: Draft
+Status: Promoted to runtime - READY_FOR_DEV
 Dependencies: STORY-010
 
 Description:
@@ -64,6 +64,70 @@ Acceptance criteria:
 - Given any REST endpoint, when the OpenAPI spec is generated, then the endpoint appears with request/response schemas
 - Given the running application, when accessing /api-docs, then a valid OpenAPI JSON is returned
 - Given Swagger UI is enabled, when accessing /swagger-ui, then API documentation is browsable
+
+---
+
+### STORY-014 - Initialize website frontend application project
+
+Type: Story
+Owner role: frontend-dev
+Priority: Critical
+Phase: 1
+Epic: EPIC-01
+Status: Draft
+Dependencies: STORY-010, STORY-012
+
+Description:
+Create the website frontend project foundation. The website project uses Next.js + React and must remain independent from future Android and iOS mobile projects.
+
+Acceptance criteria:
+- Given the frontend structure, when inspected, then `frontend/website` exists as a separate project root
+- Given the website project, when inspected, then it is a Next.js + React application
+- Given the website build, when run independently, then it does not require Android or iOS project files
+- Given project documentation, when read, then it documents website-only validation paths and notes that Android/iOS are last-priority future work
+- Given generated API clients or design tokens are introduced, when reviewed, then sharing is explicit and does not create hidden coupling with future mobile projects
+
+---
+
+### STORY-015 - Initialize Android mobile application project
+
+Type: Story
+Owner role: frontend-dev
+Priority: Low
+Phase: Later
+Epic: EPIC-01
+Status: Draft
+Dependencies: STORY-014, STORY-012
+
+Description:
+Create the Android mobile application project as an independent frontend project. Mobile applications are last-priority frontend work unless PO/SA explicitly promotes them.
+
+Acceptance criteria:
+- Given the frontend structure, when inspected, then `frontend/android` exists as a separate project root
+- Given the Android build, when run independently, then it does not require website or iOS project files
+- Given project documentation, when read, then it documents Android-only validation paths
+- Given generated API clients or design tokens are introduced, when reviewed, then sharing is explicit and does not create hidden direct source coupling with website or iOS
+
+---
+
+### STORY-016 - Initialize iOS mobile application project
+
+Type: Story
+Owner role: frontend-dev
+Priority: Low
+Phase: Later
+Epic: EPIC-01
+Status: Draft
+Dependencies: STORY-014, STORY-012
+
+Description:
+Create the iOS mobile application project as an independent frontend project. Mobile applications are last-priority frontend work unless PO/SA explicitly promotes them.
+
+Acceptance criteria:
+- Given the frontend structure, when inspected, then `frontend/ios` exists as a separate project root
+- Given the iOS build, when run independently, then it does not require website or Android project files
+- Given project documentation, when read, then it documents iOS-only validation paths
+- Given generated API clients or design tokens are introduced, when reviewed, then sharing is explicit and does not create hidden direct source coupling with website or Android
 
 ---
 
@@ -128,6 +192,50 @@ Acceptance criteria:
 - Given a new deployment, when initialized, then a tenant record is created with country code, name, timezone, locale
 - Given a tenant, when APIs are called, then all operations are scoped to that tenant
 - Given tenant configuration, when loaded, then it provides country-specific settings to all modules
+
+---
+
+### STORY-022 — Implement Podman-compatible OCI container baseline
+
+Type: Story
+Owner role: Dev
+Priority: Critical
+Phase: 1
+Epic: EPIC-02
+Status: Draft
+Dependencies: STORY-010, STORY-011
+
+Description:
+Create the first containerization baseline using open OCI images that can be built and run with Podman, without introducing Docker-daemon-specific assumptions.
+
+Acceptance criteria:
+- Given the Maven application build, when the container image is built, then an OCI-compatible application image is produced
+- Given a developer or country operator uses Podman, when they run the application image with externalized configuration, then the application starts successfully
+- Given PostgreSQL is required, when running the local container baseline, then the application connects to a containerized PostgreSQL instance using environment-provided configuration
+- Given the container definition is reviewed, then no secrets, country-specific code, or cloud-specific code are embedded in the image
+- Given the image is inspected, then it exposes health/readiness behavior suitable for later orchestration
+
+---
+
+### STORY-023 — Define cloud-portable Kubernetes and IaC deployment baseline
+
+Type: Story
+Owner role: SA/Dev
+Priority: Critical
+Phase: 1
+Epic: EPIC-02
+Status: Draft
+Dependencies: STORY-020, STORY-022
+
+Description:
+Define a cloud-portable deployment baseline using Kubernetes-compatible manifests and infrastructure-as-code modules so the same application image can run on AWS, Azure, Google Cloud, private cloud, or on-premises infrastructure.
+
+Acceptance criteria:
+- Given the deployment baseline, when reviewed, then application code remains unchanged across AWS, Azure, Google Cloud, and self-hosted/on-prem targets
+- Given Kubernetes manifests or templates, when reviewed, then they separate provider-neutral application deployment from provider-specific infrastructure concerns
+- Given infrastructure as code, when reviewed, then provider-specific modules exist or are planned for AWS, Azure, Google Cloud, and self-hosted/on-prem infrastructure
+- Given the IaC strategy, when reviewed, then it supports an open-source OpenTofu-compatible path and can accommodate Terraform if required by a country operator
+- Given a country/ministry deployment model, when reviewed, then container registries, secret stores, networking, databases, and observability are configurable per provider without changing application source code
 
 ---
 

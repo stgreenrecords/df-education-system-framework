@@ -29,6 +29,7 @@
 | SA-Q08 | Should the system support multiple database instances per country (e.g., per-region sharding), or single DB per country deployment? | Scalability, operational complexity | Open — Recommendation: single DB per country for MVP |
 | SA-Q09 | How should the release compatibility checker compare country config against new release requirements? Schema diffing, manifest comparison, or rule engine? | Release management implementation | Open |
 | SA-Q10 | Should background job processing (grade calculation, billing, reports) use Spring Batch, Quartz, or a simpler approach? | Reliability, monitoring, complexity | Open |
+| SA-Q11 | When should containerization be introduced, and should it use Podman, Kubernetes, and IaC for cloud portability? | Rework risk, sovereign deployment, cloud portability | Answered — Phase 1 foundation: Podman-compatible OCI images after STORY-010/STORY-011, then Kubernetes/OpenTofu-compatible IaC baseline before major feature work |
 
 ## Questions for Dev (Development)
 
@@ -52,7 +53,7 @@
 | QA-Q01 | What test environments are needed? Local + CI or also a shared staging? | Infrastructure cost, test reliability | Open |
 | QA-Q02 | What is the minimum test coverage target for MVP? | Quality gate for release | Open — Recommendation: 80% line coverage for core modules |
 | QA-Q03 | Should security/penetration testing be automated in CI or periodic manual? | Security assurance, cost | Open — Recommendation: automated SAST + periodic manual pentest |
-| QA-Q04 | What browser/platform matrix for UI testing (if frontend is built)? | Test scope | Open — Recommendation: API-only testing for MVP |
+| QA-Q04 | What browser/platform matrix for UI testing across website, Android, and iOS? | Test scope | Open — decide website browser coverage before QA for `STORY-014`; mobile Android/iOS simulator or device coverage can wait until last-priority mobile stories are promoted |
 | QA-Q05 | Should load/performance testing be part of MVP or post-MVP? | Performance assurance | Open — Recommendation: basic load test for MVP |
 | QA-Q06 | How should test data be managed? Fixtures, factories, or shared seed data? | Test reproducibility | Open |
 | QA-Q07 | Should the QA strategy include contract testing (Pact) for API consumers? | API stability assurance | Open — Recommendation: Yes, once frontend/mobile clients exist |
