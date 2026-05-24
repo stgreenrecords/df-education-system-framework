@@ -63,3 +63,5 @@ Out of scope:
 | Timestamp | Role | State change | Notes |
 |---|---|---|---|
 | 2026-05-23 12:05 local | sa | OPEN -> NEEDS_ARCHITECTURE -> ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV | Promoted from backlog, skipped refinement, completed architecture, and routed to `backend-dev`. |
+| 2026-05-24 local | backend-dev | READY_FOR_DEV -> DEV_IN_PROGRESS | Started implementation. Discovered Spring Boot 4.1.0-SNAPSHOT + Java 25 baseline from spring-demo reference. Updated root pom.xml and wrapper, added springdoc 3.0.3 (Spring Boot 4.x compatible), web starter, status endpoint, integration tests. |
+| 2026-05-24 local | backend-dev | DEV_IN_PROGRESS -> READY_FOR_QA | All 5 integration tests pass. Backend build and full parent build succeed. Handoff written to `df/artifacts/STORY-012/backend/handoff-to-qa.md`. |

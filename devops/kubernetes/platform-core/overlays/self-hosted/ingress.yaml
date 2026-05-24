@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: platform-core
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: country-letsencrypt
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: platform-core.country.example.edu
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: platform-core
+                port:
+                  number: 80
+  tls:
+    - hosts:
+        - platform-core.country.example.edu
+      secretName: platform-core-tls
+

@@ -1,0 +1,13 @@
+# QA Report - STORY-080
+
+## QA Result: PASS
+
+- Task: `STORY-080`
+- Acceptance criteria covered: Yes — QA independently reran the backend auth integration suite and confirmed valid login issues a bearer token, invalid login is rejected with `401`, expired bearer tokens are rejected with `401` on `GET /api/v1/identity/me`, and an admin-created user can log in successfully after registration. QA also inspected the tenant-scoped identity migration and the `identity-access` port boundary (`ActiveTenantProvider`, `IdentityAuditPort`) to confirm the implementation remains framework-generic and does not reintroduce direct `platform-core` coupling.
+- Unit tests: `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify` — PASS (Surefire unit checks passed for `ScopePathTest` 3/3 and `TenantPropertiesTest` 3/3 before the focused integration suite ran)
+- Integration tests: `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify` — PASS (`EducationSystemApplicationIT` 37/37, including auth, migration `V9`, audit, protected-route, and `/api-docs` checks against Testcontainers PostgreSQL)
+- Manual checks: Reviewed `backend/platform-core/src/main/resources/db/migration/V9__create_identity_user_table.sql`, `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/SecurityConfiguration.java`, `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`, `backend/platform-core/src/main/java/com/darkfactory/education/platform/identity/PlatformActiveTenantProvider.java`, `backend/platform-core/src/main/java/com/darkfactory/education/platform/identity/PlatformIdentityAuditPort.java`, and the refactored `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/*Service.java` files to confirm tenant scoping, explicit auth route protection, audit convergence, and the restored module boundary.
+- Regression checks: `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml clean verify` — PASS (full backend reactor succeeded with the auth changes in place)
+- Risks: Non-blocking framework/runtime noise remains from Spring Boot’s generated fallback security password warning and standard test-time warnings (Mockito dynamic agent, SpringDoc enabled-by-default, Testcontainers `CloseableResource` warning). QA did not find evidence that these warnings invalidate the auth contract or story acceptance criteria.
+- Handoff: READY_FOR_PO
+

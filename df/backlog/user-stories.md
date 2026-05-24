@@ -161,7 +161,7 @@ Owner role: SA
 Priority: Critical
 Phase: 1
 Epic: EPIC-02
-Status: Draft
+Status: Promoted to runtime - READY_FOR_QA
 Dependencies: None
 
 Description:
@@ -178,11 +178,11 @@ Acceptance criteria:
 ### STORY-021 — Implement basic tenant/deployment configuration
 
 Type: Story
-Owner role: Dev
+Owner role: backend-dev
 Priority: Critical
 Phase: 1
 Epic: EPIC-02
-Status: Draft
+Status: Promoted to runtime - READY_FOR_DEV
 Dependencies: STORY-010, STORY-011
 
 Description:
@@ -198,11 +198,11 @@ Acceptance criteria:
 ### STORY-022 — Implement Podman-compatible OCI container baseline
 
 Type: Story
-Owner role: Dev
+Owner role: devops
 Priority: Critical
 Phase: 1
 Epic: EPIC-02
-Status: Draft
+Status: Promoted to runtime - READY_FOR_DEV
 Dependencies: STORY-010, STORY-011
 
 Description:
@@ -220,11 +220,11 @@ Acceptance criteria:
 ### STORY-023 — Define cloud-portable Kubernetes and IaC deployment baseline
 
 Type: Story
-Owner role: SA/Dev
+Owner role: devops
 Priority: Critical
 Phase: 1
 Epic: EPIC-02
-Status: Draft
+Status: Promoted to runtime - READY_FOR_DEV
 Dependencies: STORY-020, STORY-022
 
 Description:
@@ -244,11 +244,11 @@ Acceptance criteria:
 ### STORY-030 — Implement hierarchical configuration with inheritance
 
 Type: Story
-Owner role: Dev
+Owner role: backend-dev
 Priority: Critical
 Phase: 1
 Epic: EPIC-03
-Status: Draft
+Status: Promoted to runtime - READY_FOR_DEV
 Dependencies: STORY-021
 
 Description:

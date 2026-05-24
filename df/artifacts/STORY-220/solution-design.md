@@ -10,6 +10,8 @@ EPIC-22 requires every visible label, message, and text string to be translatabl
 
 The existing architecture direction establishes a Java Spring Boot modular monolith with PostgreSQL, Flyway or Liquibase migrations, Spring Data, OpenAPI, auditability, and a strict rule that country templates are data-only.
 
+`STORY-010` and `STORY-011` are now accepted, so the repository has a running Spring Boot application in `backend/platform-core`, PostgreSQL datasource configuration, Flyway migrations, and Testcontainers-backed integration testing. The previous blocker is resolved; this refresh aligns the older i18n design with the actual active codebase and delivery-lane model.
+
 ## Requirements and acceptance criteria
 
 - Persist translation values by translation key, BCP 47 language code, optional namespace, value, version, and timestamps.
@@ -22,24 +24,26 @@ The existing architecture direction establishes a Java Spring Boot modular monol
 
 ## Proposed solution
 
-Create an `i18n` or `platform-core-i18n` module boundary inside the modular monolith.
+Implement the first translation-storage slice inside `backend/platform-core` under a dedicated package boundary such as `com.darkfactory.education.platform.translation`. Do not create a new Maven module yet; the codebase is still in an early foundation phase and the smallest viable path is to add the i18n slice inside the existing running Spring Boot application.
 
 Primary responsibilities:
 
-- `Translation` entity/table for storage.
+- `Translation` persistence model and Flyway migration for storage.
 - `TranslationRepository` for key/language/namespace access.
-- `TranslationService` for lookup, fallback, cache interaction, and update orchestration.
-- `TranslationFallbackResolver` that receives requested language and country/deployment context, then builds a generic fallback list from data.
-- `TranslationCache` abstraction backed initially by Spring Cache.
-- `TranslationAuditPublisher` adapter that emits audit events or writes to the available audit mechanism.
+- `TranslationService` for lookup, fallback, cache interaction, startup warmup, and update orchestration.
+- `TranslationFallbackResolver` that receives requested language and deployment-default language, then builds a generic fallback list from data.
+- `TranslationCache` abstraction backed initially by Spring Cache plus a local TTL-aware implementation/configuration.
+- `TranslationAuditRepository` or equivalent adapter that writes a minimal generic translation-audit record until the broader audit subsystem exists.
+- A minimal backend API surface sufficient to prove lookup/update behavior and cache invalidation while staying aligned with later translation-management work.
 
 Lookup behavior:
 
 1. Normalize and validate the requested BCP 47 language code.
-2. Build candidate languages in order: requested language, country default language if different, `en`.
-3. Query by `(translation_key, namespace, language_code)` using the candidate order.
-4. Return the first match.
-5. If no value exists, return a structured missing-translation result without throwing for normal rendering paths.
+2. Normalize missing or blank namespace input to a reserved generic namespace such as `default`.
+3. Build candidate languages in order: requested language, deployment default language if different, `en`.
+4. Query by `(translation_key, namespace, language_code)` using the candidate order.
+5. Return the first match.
+6. If no value exists, return a structured missing-translation result without throwing for normal rendering paths.
 
 Update behavior:
 
@@ -47,6 +51,14 @@ Update behavior:
 2. Increment `version`.
 3. Publish/write audit data: actor, translation key, namespace, language code, old value, new value, timestamp.
 4. Evict the exact cache key and any aggregate namespace/language cache entry affected by the change.
+
+Minimal API scope for this story:
+
+- Add only the smallest REST surface needed to satisfy the story acceptance criteria and to verify runtime behavior end-to-end.
+- Recommended shape:
+  - `GET /api/v1/translations/resolve?key={key}&lang={code}&namespace={ns}&defaultLanguage={code}` for lookup/fallback proof.
+  - `PUT /api/v1/translations/{id}` for updating a translation value and proving cache invalidation + audit.
+- Keep the API generic and future-compatible, but do not implement full admin CRUD, bulk import/export, coverage reporting, or role model breadth here; those belong to `STORY-222`.
 
 ## Alternatives considered
 
@@ -57,14 +69,15 @@ Update behavior:
 
 ## Files/components likely affected
 
-- Future code module: `platform-core` or new `i18n` package/module under the Spring Boot application.
-- Database migration for `translation`.
-- Repository/entity/service classes for translation lookup and updates.
-- Application startup cache warmup component.
-- Configuration properties for TTL and fallback default.
-- Tests for repository constraints, fallback resolution, cache invalidation, and audit publication.
+- `backend/platform-core/pom.xml`
+- `backend/platform-core/src/main/resources/application.properties`
+- `backend/platform-core/src/main/resources/db/migration/*`
+- `backend/platform-core/src/main/java/com/darkfactory/education/platform/translation/**`
+- Optional supporting packages under `backend/platform-core/src/main/java/com/darkfactory/education/platform/config/**`
+- `backend/platform-core/src/test/java/com/darkfactory/education/platform/**`
+- `df/artifacts/STORY-220/backend/*`
 
-## Data model changes
+## Data/API contract changes
 
 Required table:
 
@@ -73,7 +86,7 @@ translation
   id uuid primary key
   translation_key varchar not null
   language_code varchar not null
-  namespace varchar null
+  namespace varchar not null default 'default'
   value text not null
   version integer not null default 1
   created_at timestamptz not null
@@ -86,14 +99,35 @@ Required uniqueness:
 unique (translation_key, language_code, namespace)
 ```
 
-PostgreSQL note: because nullable columns can affect uniqueness semantics, Dev should either make `namespace` non-null with a reserved generic default such as `default`, or use an expression/partial unique index that treats null namespace consistently. Prefer a non-null `namespace` default for simpler application behavior if it does not conflict with the final migration style.
+Chosen PostgreSQL approach: make `namespace` non-null with a reserved generic default such as `default`. This preserves the “optional namespace” product behavior at the API/service level while keeping uniqueness semantics simple and deterministic.
 
 Recommended indexes:
 
 - `(translation_key, namespace, language_code)` for direct lookup.
 - `(language_code, namespace)` for namespace/language loading.
 
-Audit data can be handled through the central audit table/event system when available. If STORY-013 is not implemented yet, Dev should add only the minimal translation audit adapter needed for this story and keep it compatible with the future platform audit contract.
+Required temporary audit table for this story:
+
+```sql
+translation_audit
+  id uuid primary key
+  translation_id uuid not null
+  actor varchar not null
+  translation_key varchar not null
+  language_code varchar not null
+  namespace varchar not null
+  old_value text null
+  new_value text not null
+  changed_at timestamptz not null
+```
+
+This local audit table satisfies the story acceptance criteria now and must be designed so a later platform-wide audit implementation can consume, bridge, or migrate it without changing translation behavior.
+
+API shape added by this story should remain minimal and backend-focused:
+
+- Translation resolution endpoint returning the resolved value plus the language actually used.
+- Translation update endpoint that accepts actor context and persists a versioned change.
+- No country-specific or language-specific route variants.
 
 ## API/contract changes
 
@@ -112,7 +146,7 @@ No direct UI change in this story. Later UI stories will consume translation key
 ## Security and privacy considerations
 
 - Translation values are usually not PII, but audit actor identifiers are sensitive and must follow the platform audit/privacy rules.
-- Update paths must require admin-level authorization when exposed by STORY-222.
+- Until the full authorization model exists, any provisional update path must stay minimal, clearly documented, and ready to be tightened by `STORY-222`/security stories.
 - Logs must not dump full translation payloads by default.
 - No secrets or country-specific values belong in source or migrations except generic seed data approved by product.
 
@@ -135,6 +169,7 @@ Dev should add automated tests for:
 - Cache is populated on startup or first load according to implementation choice and respects TTL configuration.
 - Updating a translation invalidates the affected cache entry.
 - Updating a translation creates an audit record/event with actor, old value, new value, and timestamp.
+- Minimal REST lookup/update paths behave correctly under the running application context.
 - Static/source inspection or architectural test proves no language-specific or country-specific branches exist for translation resolution.
 
 ## Deployment/migration plan
@@ -154,12 +189,18 @@ Dev should add automated tests for:
 
 - Risk: Namespace null uniqueness can allow duplicates in PostgreSQL. Mitigation: use non-null default namespace or expression index.
 - Risk: Future multi-node deployment needs distributed invalidation. Mitigation: depend on cache abstraction and record distributed cache as a follow-up architecture concern.
-- Risk: Audit system may not exist yet. Mitigation: implement a thin adapter/event interface compatible with the future audit module.
+- Risk: Platform-wide audit does not exist yet. Mitigation: implement a thin local translation-audit table/repository now and keep its contract easy to bridge or migrate later.
 - Risk: English fallback data may be incomplete. Mitigation: add seed/coverage tests for keys used by smoke tests and report missing keys.
 
 ## Open questions
 
 - None blocking Dev. The cache provider can start local through Spring Cache; distributed cache remains a later provider decision.
+
+## Implementation lane
+
+- Lane: `backend-dev`
+- Subdashboard: `df/runtime/backend-dev-board.md`
+- Artifact folder for implementation notes: `df/artifacts/STORY-220/backend/`
 
 ## SA decision
 

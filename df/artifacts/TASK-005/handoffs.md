@@ -53,3 +53,34 @@
 ## Blockers
 
 - None.
+
+---
+
+## QA -> PO
+
+- Timestamp: 2026-05-24 local
+- Task: TASK-005
+- From state: READY_FOR_QA
+- To state: READY_FOR_PO
+- Summary: QA independently verified all 8 acceptance criteria. designer.md, data-engineer.md, design-board.md, data-engineer-board.md all exist; frontend design gate, public-source traceability rules, and synthetic personal-data rules are documented consistently. No application code was changed. All checks passed.
+- QA report: `df/artifacts/TASK-005/qa-report.md`
+
+### PO instructions
+
+- Review the 8 acceptance criteria in `df/artifacts/TASK-005/qa-report.md`.
+- Confirm the designer pre-frontend gate and data-engineer source-traceability/synthetic-data rules are acceptable as the Dark Factory framework standard.
+- Accept → move task to `DONE`, record acceptance in `df/artifacts/TASK-005/po-review.md`.
+- Reject → move task to `PO_REJECTED`, create defect report, and return to responsible SA lane with evidence.
+- No screenshots required — documentation-only change.
+
+---
+
+## PO acceptance
+
+- Timestamp: 2026-05-24 local
+- Task: TASK-005
+- From state: READY_FOR_PO
+- To state: DONE
+- Result: ACCEPTED
+- Evidence: `df/artifacts/TASK-005/po-review.md`
+

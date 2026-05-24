@@ -58,3 +58,35 @@
 ## Blockers
 
 - None.
+
+---
+
+## QA -> PO
+
+- Timestamp: 2026-05-24 local
+- Task: TASK-004
+- From state: READY_FOR_QA
+- To state: READY_FOR_PO
+- Summary: QA independently verified all 9 acceptance criteria. All role files, subdashboards, framework documentation, and routing rules are consistent and complete. No application code was changed. All checks passed.
+- QA report: `df/artifacts/TASK-004/qa-report.md`
+
+### PO instructions
+
+- Review the 9 acceptance criteria in `df/artifacts/TASK-004/qa-report.md`.
+- Confirm the lane-based development model is acceptable as the Dark Factory framework standard.
+- Confirm mobile (Android/iOS) work is intentionally last-priority.
+- Accept → move task to `DONE`, record acceptance in `df/artifacts/TASK-004/po-review.md`.
+- Reject → move task to `PO_REJECTED`, create defect report, and return to responsible SA lane with evidence.
+- No screenshots required — documentation-only change.
+
+---
+
+## PO acceptance
+
+- Timestamp: 2026-05-24 local
+- Task: TASK-004
+- From state: READY_FOR_PO
+- To state: DONE
+- Result: ACCEPTED
+- Evidence: `df/artifacts/TASK-004/po-review.md`
+

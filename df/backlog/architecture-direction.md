@@ -109,6 +109,45 @@ Rules:
 └─────────────────────────────────────────┘
 ```
 
+### Country-sovereign operating model
+
+- Each country/ministry operates its own isolated deployment estate.
+- Each country owns its own `dev`, `qa`, `stage`, and `prod` environments.
+- Each country owns its own data, backups, secrets, observability, and operator access.
+- The framework vendor provides release artifacts, migration guidance, compatibility guidance, and documentation, but is not the mandatory operator of country production infrastructure.
+- No cross-country production data plane is allowed.
+
+Release flow:
+
+`vendor -> package -> country receives -> country tests -> country deploys`
+
+This operating model is the governing boundary for later deployment work. Kubernetes bases, overlays, and IaC modules must preserve country-owned operations while keeping the application source code and portable release artifacts cloud-neutral.
+
+### Deployment tenant model
+
+- Phase 1 should treat one sovereign country/ministry deployment as one active deployment tenant, not as one member of a centrally hosted multi-country SaaS tenant pool.
+- The deployment tenant should persist generic metadata such as country code, display name, timezone, and locale.
+- Backend APIs and services should resolve a server-controlled deployment tenant context rather than allowing request-side cross-country tenant switching.
+- Later organization, configuration, security, audit, and release-management work should reuse the same deployment tenant context instead of inventing parallel top-level scoping models.
+
+### Configuration inheritance foundation
+
+- Phase 1 configuration inheritance should live in `platform-core` and reuse the active deployment tenant as the country/root scope.
+- The first implementation should resolve configuration along a generic ordered scope path (`COUNTRY -> REGION -> CITY -> INSTITUTION -> UNIT`) instead of coupling immediately to unfinished organization-module persistence.
+- Lower scopes may be represented by opaque identifiers in the initial implementation; later organization work should supply authoritative IDs/paths without replacing the inheritance semantics.
+- Configuration field behavior should be data-driven through field-definition metadata such as value type and merge strategy rather than feature-specific or country-specific code branches.
+- The first merge strategy set should stay minimal: `REPLACE` for direct override behavior and `EXTEND_SET` for inherited-plus-local option aggregation.
+- Compatibility reports, inheritance-break workflows, and richer merge semantics should remain follow-up work rather than expanding the first inheritance foundation story.
+
+### Audit trail foundation
+
+- Phase 1 audit should live in `platform-core` as a generic append-only platform service, not as permanent per-feature audit tables.
+- Audit events should be scoped to the active deployment tenant from `STORY-021` so audit data remains sovereign and deployment-local by default.
+- The first implementation should use a generic event model that records actor, timestamp, entity identity, action, before/after payloads, and optional metadata without hardcoding module-specific schemas.
+- The application contract should remain immutable from a consumer perspective: write/append is allowed, but update/delete operations for audit records are not exposed.
+- Read access should support filtered backend retrieval and export for compliance-style review; stronger RBAC and retention policies remain follow-up work.
+- Temporary feature-specific audit bridges, such as the translation audit introduced before the platform foundation exists, should converge onto the shared platform audit model instead of remaining permanent parallel systems.
+
 ## Containerization and cloud portability
 
 Containerization is a Phase 1 foundation concern, not a post-MVP hardening task. `STORY-010` should keep the Maven/Spring Boot application container-ready; `STORY-011` should make database configuration container-aware; `STORY-022` should add the first Podman-compatible OCI image; and `STORY-023` should add the Kubernetes/IaC deployment baseline before deep feature implementation.
@@ -124,6 +163,14 @@ Architecture direction:
 - Prefer OpenTofu-compatible IaC for the open-source path, while allowing Terraform where a country/ministry standard requires it.
 
 The same application image and source code should run across providers. The IaC cannot be fully identical across providers because networking, registries, managed databases, IAM, load balancers, and secret stores differ.
+
+### Kubernetes and IaC baseline shape
+
+- Keep a provider-neutral Kubernetes application base for shared workload behavior such as image references, probes, ports, env/secret references, and generic resource defaults.
+- Put AWS, Azure, Google Cloud, and self-hosted/on-prem deployment differences into provider-specific overlays or equivalent customization layers.
+- Put infrastructure wiring into OpenTofu-compatible HCL modules that remain consumable by Terraform when a country operator requires that toolchain.
+- Treat self-hosted/on-prem as a first-class provider target, not an undocumented fallback.
+- Do not hardcode provider-specific ingress, registry, IAM, secret-store, database, or observability assumptions into application source code or the provider-neutral deployment base.
 
 ## Security architecture
 
@@ -142,6 +189,14 @@ The same application image and source code should run across providers. The IaC 
 - Role-Based Access Control (RBAC) for standard permissions
 - Attribute-Based Access Control (ABAC) for context-aware decisions (institution, class, subject)
 - Least-privilege: users get minimum permissions needed
+
+### Phase 1 authentication foundation
+
+- The first authentication implementation should be backend-only and live primarily in `backend/identity-access`, with only the minimum runtime security wiring in the executable Spring Boot module.
+- Phase 1 should start with tenant-scoped local credentials, secure password hashing, and signed bearer-token authentication rather than waiting for full external IdP integration.
+- One deployment-local bootstrap administrator may be created from externalized configuration so additional users can be registered without introducing public self-signup.
+- Full hierarchical RBAC, MFA, external federation, password reset, and broader identity lifecycle workflows remain follow-up stories layered on top of the same authentication foundation.
+- Secrets such as bootstrap credentials and token-signing configuration must stay externalized; they must not be committed to source control or baked into portable release artifacts.
 
 ### Data protection
 

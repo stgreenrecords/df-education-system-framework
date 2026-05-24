@@ -4,7 +4,7 @@ This is the live queue for `frontend-dev` implementation tasks. The main board r
 
 | Priority | Task ID | Parent task | Title | State | Owner role | Affected scope | Blocked? | Last updated | Next action |
 |---|---|---|---|---|---|---|---|---|---|
-| - | - | - | No active frontend delivery lane tasks | NO_TASKS | frontend-dev | - | No | 2026-05-23 11:25 local | Await SA-routed frontend task |
+| P0 | STORY-014 | - | Initialize website frontend application project | DONE | factory | `frontend/website`, minimal frontend-root documentation/build wiring, website-only validation paths | No | 2026-05-24 22:26 local | Accepted by PO. New session: `sa` should inspect the runtime board and select the next highest-priority actionable task. |
 
 ## Lane notes
 

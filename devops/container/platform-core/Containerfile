@@ -1,0 +1,14 @@
+FROM eclipse-temurin:25-jre-alpine
+
+WORKDIR /opt/education-system-framework/platform-core
+
+ARG JAR_FILE=backend/platform-core/target/platform-core-0.1.0-SNAPSHOT-exec.jar
+COPY ${JAR_FILE} app.jar
+
+EXPOSE 8080
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=40s --retries=5 \
+  CMD wget --quiet --tries=1 --spider http://127.0.0.1:8080/platform/status || exit 1
+
+ENTRYPOINT ["java", "-jar", "/opt/education-system-framework/platform-core/app.jar"]
+

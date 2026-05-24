@@ -1,0 +1,14 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: platform-core
+
+resources:
+  - resources.yaml
+
+
+images:
+  - name: education-system-framework/platform-core
+    newName: education-system-framework/platform-core
+    newTag: latest
+
