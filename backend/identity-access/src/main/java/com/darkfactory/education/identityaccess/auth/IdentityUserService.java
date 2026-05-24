@@ -11,25 +11,33 @@ public class IdentityUserService {
     private final ActiveTenantProvider activeTenantProvider;
     private final PasswordEncoder passwordEncoder;
     private final IdentityAuditPort identityAuditPort;
+    private final IdentityAuthorizationService identityAuthorizationService;
 
     public IdentityUserService(
             IdentityUserRepository identityUserRepository,
             ActiveTenantProvider activeTenantProvider,
             PasswordEncoder passwordEncoder,
-            IdentityAuditPort identityAuditPort
+            IdentityAuditPort identityAuditPort,
+            IdentityAuthorizationService identityAuthorizationService
     ) {
         this.identityUserRepository = identityUserRepository;
         this.activeTenantProvider = activeTenantProvider;
         this.passwordEncoder = passwordEncoder;
         this.identityAuditPort = identityAuditPort;
+        this.identityAuthorizationService = identityAuthorizationService;
     }
 
     public IdentityUserRecord registerUser(CreateUserRequest request, AuthenticatedUserPrincipal actor) {
-        if (actor.authority() != IdentityUserAuthority.ADMIN) {
-            throw new IllegalArgumentException("Only ADMIN users may create new users");
+        UUID tenantId = activeTenantProvider.getActiveTenantId();
+        if (actor.authority() != IdentityUserAuthority.ADMIN
+                && !identityAuthorizationService.hasPermission(
+                        actor,
+                        IdentityPermission.ASSIGN_ROLE,
+                        IdentityScopePath.tenant(tenantId)
+                )) {
+            throw new AuthorizationDeniedException("The current user is not allowed to create identity users.");
         }
 
-        UUID tenantId = activeTenantProvider.getActiveTenantId();
         String normalizedUsername = IdentityUserNormalizer.normalizeUsername(request.username());
         String rawPassword = IdentityUserNormalizer.normalizePassword(request.initialPassword(), "Initial password");
         String normalizedDisplayName = IdentityUserNormalizer.normalizeDisplayName(request.displayName());

@@ -12,17 +12,20 @@ public class IdentityBootstrapService {
     private final IdentityUserRepository identityUserRepository;
     private final ActiveTenantProvider activeTenantProvider;
     private final PasswordEncoder passwordEncoder;
+    private final IdentityRoleAssignmentService identityRoleAssignmentService;
 
     public IdentityBootstrapService(
             AuthProperties authProperties,
             IdentityUserRepository identityUserRepository,
             ActiveTenantProvider activeTenantProvider,
-            PasswordEncoder passwordEncoder
+            PasswordEncoder passwordEncoder,
+            IdentityRoleAssignmentService identityRoleAssignmentService
     ) {
         this.authProperties = authProperties;
         this.identityUserRepository = identityUserRepository;
         this.activeTenantProvider = activeTenantProvider;
         this.passwordEncoder = passwordEncoder;
+        this.identityRoleAssignmentService = identityRoleAssignmentService;
     }
 
     public void ensureBootstrapAdmin() {
@@ -39,21 +42,21 @@ public class IdentityBootstrapService {
                 "Bootstrap Administrator"
         );
 
-        identityUserRepository.findByTenantAndUsername(tenantId, normalizedUsername)
-                .ifPresentOrElse(
-                        existing -> reconcileExistingBootstrapAdmin(existing, rawPassword, normalizedDisplayName),
-                        () -> identityUserRepository.insert(
-                                tenantId,
-                                normalizedUsername,
-                                passwordEncoder.encode(rawPassword),
-                                IdentityUserStatus.ACTIVE,
-                                normalizedDisplayName,
-                                IdentityUserAuthority.ADMIN
-                        )
-                );
+        IdentityUserRecord bootstrapAdmin = identityUserRepository.findByTenantAndUsername(tenantId, normalizedUsername)
+                .map(existing -> reconcileExistingBootstrapAdmin(existing, rawPassword, normalizedDisplayName))
+                .orElseGet(() -> identityUserRepository.insert(
+                        tenantId,
+                        normalizedUsername,
+                        passwordEncoder.encode(rawPassword),
+                        IdentityUserStatus.ACTIVE,
+                        normalizedDisplayName,
+                        IdentityUserAuthority.ADMIN
+                ));
+
+        identityRoleAssignmentService.ensureBootstrapCountryAdmin(bootstrapAdmin);
     }
 
-    private void reconcileExistingBootstrapAdmin(
+    private IdentityUserRecord reconcileExistingBootstrapAdmin(
             IdentityUserRecord existing,
             String rawPassword,
             String normalizedDisplayName
@@ -69,10 +72,10 @@ public class IdentityBootstrapService {
         boolean statusMatches = existing.status() == IdentityUserStatus.ACTIVE;
 
         if (passwordMatches && displayNameMatches && statusMatches) {
-            return;
+            return existing;
         }
 
-        identityUserRepository.updateBootstrapAdmin(
+        return identityUserRepository.updateBootstrapAdmin(
                 existing.userId(),
                 passwordEncoder.encode(rawPassword),
                 normalizedDisplayName,

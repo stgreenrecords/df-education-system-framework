@@ -102,5 +102,11 @@
   - Related task: `STORY-080`
   - Record: `df/artifacts/STORY-080/decision-017-phase-1-auth-foundation.md`
 
+- `DECISION-018` - Phase 1 RBAC layers on the accepted authentication foundation with a predefined generic role catalogue, tenant-scoped role assignments, and scope-aware backend authorization checks that stay framework-generic and backend-only before later MFA/ABAC expansion.
+  - Date: 2026-05-24
+  - Status: Accepted
+  - Related task: `STORY-081`
+  - Record: `df/artifacts/STORY-081/decision-018-phase-1-rbac-foundation.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 

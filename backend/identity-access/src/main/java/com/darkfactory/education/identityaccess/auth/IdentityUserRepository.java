@@ -44,6 +44,20 @@ public class IdentityUserRepository {
         return records.stream().findFirst();
     }
 
+    public Optional<IdentityUserRecord> findByTenantAndUserId(UUID tenantId, UUID userId) {
+        List<IdentityUserRecord> records = jdbcTemplate.query(
+                """
+                select user_id, tenant_id, username, password_hash, status, display_name, authority, created_at, updated_at
+                from identity_user
+                where tenant_id = ? and user_id = ?
+                """,
+                ROW_MAPPER,
+                tenantId,
+                userId
+        );
+        return records.stream().findFirst();
+    }
+
     public IdentityUserRecord insert(
             UUID tenantId,
             String username,

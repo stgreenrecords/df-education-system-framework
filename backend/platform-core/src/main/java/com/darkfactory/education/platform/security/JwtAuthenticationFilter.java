@@ -1,6 +1,7 @@
 package com.darkfactory.education.platform.security;
 
 import com.darkfactory.education.identityaccess.auth.AuthenticatedUserPrincipal;
+import com.darkfactory.education.identityaccess.auth.AuthenticatedPrincipalRoleService;
 import com.darkfactory.education.identityaccess.auth.AuthenticationTokenService;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -23,9 +24,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
 
     private final AuthenticationTokenService authenticationTokenService;
+    private final AuthenticatedPrincipalRoleService authenticatedPrincipalRoleService;
 
-    public JwtAuthenticationFilter(AuthenticationTokenService authenticationTokenService) {
+    public JwtAuthenticationFilter(
+            AuthenticationTokenService authenticationTokenService,
+            AuthenticatedPrincipalRoleService authenticatedPrincipalRoleService
+    ) {
         this.authenticationTokenService = authenticationTokenService;
+        this.authenticatedPrincipalRoleService = authenticatedPrincipalRoleService;
     }
 
     @Override
@@ -47,7 +53,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         try {
-            AuthenticatedUserPrincipal principal = authenticationTokenService.parseAccessToken(token);
+            AuthenticatedUserPrincipal principal = authenticatedPrincipalRoleService.enrich(
+                    authenticationTokenService.parseAccessToken(token)
+            );
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                     principal,
                     token,

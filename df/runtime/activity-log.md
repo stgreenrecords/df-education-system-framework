@@ -2078,3 +2078,77 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Result: PASS
 - Next: New session required. Factory/SA should select the next actionable task from the runtime boards.
 
+## 2026-05-24 23:19 local - State change
+
+- Task: STORY-081
+- From: OPEN
+- To: NEEDS_ARCHITECTURE
+- Role: sa
+- Reason: `STORY-080` reached `DONE` and no active runtime task remained. `STORY-081` was selected as the next highest-priority actionable Critical Phase 1 story because the accepted auth foundation now unblocks RBAC directly, the roadmap and MVP still list the user/role model as unfinished platform work, and `STORY-081` is the strongest dependency-root follow-up among the remaining draft stories.
+- Evidence: `df/backlog/roadmap.md`; `df/backlog/mvp-definition.md`; `df/backlog/user-stories.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Complete the RBAC solution design, record the architectural decision, and route the story to the correct delivery lane.
+
+## 2026-05-24 23:19 local - State change
+
+- Task: STORY-081
+- From: NEEDS_ARCHITECTURE
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: Architecture is required because RBAC affects identity persistence, authorization policy design, protected API behavior, and future domain-module security boundaries.
+- Evidence: `df/artifacts/STORY-081/task.md`; `df/backlog/architecture-direction.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticatedUserPrincipal.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityUserAuthority.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/SecurityConfiguration.java`
+- Next: Finalize the backend-only Phase 1 RBAC design and route implementation.
+
+## 2026-05-24 23:19 local - State change
+
+- Task: STORY-081
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_DEV
+- Role: sa
+- Reason: The backend-oriented RBAC solution design, decision record, lane routing, and runtime updates are complete.
+- Evidence: `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/solution-design.md`; `df/artifacts/STORY-081/decision-018-phase-1-rbac-foundation.md`; `df/artifacts/STORY-081/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/decisions.md`; `df/backlog/architecture-direction.md`
+- Next: `backend-dev` should implement the RBAC foundation and hand off with focused backend verification evidence.
+
+## 2026-05-24 23:19 local - sa - STORY-081
+
+- State: OPEN → NEEDS_ARCHITECTURE → ARCHITECTURE_IN_PROGRESS → READY_FOR_DEV
+- Action: Reviewed the post-`STORY-080` runtime queue, selected `STORY-081` as the next actionable Critical Phase 1 story, skipped refinement because the backlog acceptance criteria are explicit, designed a backend-only Phase 1 RBAC foundation that layers on the accepted auth baseline with predefined generic roles and scope-aware authorization checks, recorded `DECISION-018`, updated the shared architecture direction, created the task/design/handoff artifacts, and routed the story to `backend-dev`.
+- Evidence: `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/solution-design.md`; `df/artifacts/STORY-081/decision-018-phase-1-rbac-foundation.md`; `df/artifacts/STORY-081/handoffs.md`; `df/backlog/roadmap.md`; `df/backlog/mvp-definition.md`; `df/backlog/user-stories.md`; `df/backlog/architecture-direction.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/decisions.md`
+- Result: PASS
+- Next: New session required. `backend-dev` should implement `STORY-081` in the backend lane.
+
+## 2026-05-24 23:25 local - State change
+
+- Task: STORY-081
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: backend-dev
+- Reason: Backend implementation started after reviewing the SA design package, runtime lane queue, and current authentication/security/test seams from `STORY-080`.
+- Evidence: `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/backend/dev-notes.md`; `df/artifacts/STORY-081/solution-design.md`; `df/artifacts/STORY-081/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Implement role-assignment persistence, authorization services, representative protected routes, and backend verification coverage.
+
+## 2026-05-24 23:25 local - backend-dev - STORY-081
+
+- State: DEV_IN_PROGRESS
+- Action: Reviewed the SA architecture package plus the existing `STORY-080` auth/security/test implementation, identified the minimal safe RBAC seam (persisted role assignments + server-side principal enrichment + scope-aware authorization checks), created backend lane notes, and started the backend implementation pass.
+- Evidence: `df/artifacts/STORY-081/backend/dev-notes.md`; `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/solution-design.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationTokenService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityUserService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityUserRepository.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+- Result: PASS — implementation plan is clear and scoped.
+- Next: Add RBAC data model, role-assignment APIs, authorization evaluation, and integration coverage.
+
+## 2026-05-24 23:32 local - State change
+
+- Task: STORY-081
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: backend-dev
+- Reason: Backend implementation, focused verification, and QA handoff evidence are complete for the Phase 1 backend-only RBAC foundation.
+- Evidence: `df/artifacts/STORY-081/backend/dev-notes.md`; `df/artifacts/STORY-081/backend/handoff-to-qa.md`; `df/artifacts/STORY-081/handoffs.md`; `backend/platform-core/src/main/resources/db/migration/V10__create_identity_role_assignment_table.sql`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityRoleAssignmentService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthorizationService.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+- Next: `qa` should rerun the focused integration suite, inspect migration `V10` plus server-side role enrichment, and decide whether the story advances to `READY_FOR_PO` or returns for rework.
+
+## 2026-05-24 23:32 local - backend-dev - STORY-081
+
+- State: DEV_IN_PROGRESS → READY_FOR_QA
+- Action: Completed the backend-only RBAC implementation by adding migration `V10`, tenant-scoped predefined role assignments, server-side principal role enrichment during JWT request handling, generic scope-path authorization evaluation, bootstrap country-admin reconciliation, minimal role-assignment APIs, representative institution/student authorization-proof endpoints, audit convergence for role assignments, and expanded integration coverage for migration order, role-assignment behavior, teacher/institution-admin/parent scope checks, and `/api-docs` exposure.
+- Evidence: `df/artifacts/STORY-081/backend/dev-notes.md`; `df/artifacts/STORY-081/backend/handoff-to-qa.md`; `df/artifacts/STORY-081/handoffs.md`; `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify`; `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml clean verify`
+- Result: PASS
+- Next: New session required. `qa` should validate the RBAC contract and decide whether `STORY-081` advances to `READY_FOR_PO` or returns for backend rework.
+

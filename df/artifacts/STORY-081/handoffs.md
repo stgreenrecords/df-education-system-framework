@@ -53,3 +53,45 @@
 
 - None.
 
+## backend-dev -> qa
+
+- Timestamp: 2026-05-24 23:32 local
+- Task: STORY-081
+- From state: DEV_IN_PROGRESS
+- To state: READY_FOR_QA
+- Lane: backend-dev
+- Summary: `backend-dev` completed the backend-only Phase 1 RBAC foundation by adding tenant-scoped predefined role assignments, generic scope-path authorization evaluation, bootstrap-admin reconciliation into the new RBAC model, minimal role-assignment APIs, representative institution/student authorization-proof endpoints, audit convergence for role assignments, and expanded integration coverage for migration `V10`, teacher/institution-admin/parent scope checks, and `/api-docs` exposure.
+
+## Evidence
+
+- `df/artifacts/STORY-081/backend/dev-notes.md`
+- `df/artifacts/STORY-081/backend/handoff-to-qa.md`
+- `df/artifacts/STORY-081/task.md`
+- `backend/platform-core/src/main/resources/db/migration/V10__create_identity_role_assignment_table.sql`
+- `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityRoleAssignmentService.java`
+- `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthorizationService.java`
+- `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityRoleAssignmentController.java`
+- `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAccessProbeController.java`
+- `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`
+- `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+
+## Tests/checks
+
+| Check | Command/source | Result | Notes |
+|---|---|---|---|
+| Focused RBAC integration verification | `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify` | PASS | `EducationSystemApplicationIT` passed `40/40`, including migration `V10`, bootstrap role reconciliation, role assignment audit convergence, teacher/institution-admin/parent scope checks, and `/api-docs` exposure |
+| Full backend reactor verification | `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml clean verify` | PASS | Confirms the RBAC/auth changes did not break the wider backend reactor |
+| IDE error scan | `get_errors` on edited/new RBAC files | PASS | Only the expected SQL datasource-assistance warning appeared for the new migration file |
+
+## Known risks
+
+- Representative authorization-proof endpoints remain temporary backend-only evidence paths until later domain stories provide richer real school/person resources.
+- Existing non-identity endpoints were not broadly re-scoped in this story to avoid silent authorization expansion across earlier accepted work.
+
+## Next role instructions
+
+- Rerun the focused `EducationSystemApplicationIT` suite and inspect the new `V10` migration plus bootstrap role-assignment reconciliation.
+- Verify role assignments are loaded server-side during JWT-authenticated requests through `AuthenticatedPrincipalRoleService` and `JwtAuthenticationFilter`.
+- Confirm teacher/institution-admin/parent authorization boundaries behave as documented and that role-assignment mutations create audit events.
+- Confirm the new RBAC endpoints appear in `/api-docs` and that the implementation remains backend-only and framework-generic.
+

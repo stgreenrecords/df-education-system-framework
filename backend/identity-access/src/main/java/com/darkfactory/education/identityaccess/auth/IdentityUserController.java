@@ -30,6 +30,8 @@ public class IdentityUserController {
             return IdentityUserResponse.fromRecord(
                     identityUserService.registerUser(request, authenticatedPrincipal(authentication))
             );
+        } catch (AuthorizationDeniedException exception) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, exception.getMessage(), exception);
         } catch (DuplicateUsernameException exception) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, exception.getMessage(), exception);
         } catch (IllegalArgumentException exception) {

@@ -41,7 +41,7 @@ public class SecurityConfiguration {
                                 "/api/v1/platform/tenant",
                                 "/api/v1/identity/auth/login"
                         ).permitAll()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/identity/users").hasAuthority("ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/api/v1/identity/users").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/identity/me").authenticated()
                         .requestMatchers("/api/v1/identity/**").authenticated()
                         .anyRequest().permitAll()

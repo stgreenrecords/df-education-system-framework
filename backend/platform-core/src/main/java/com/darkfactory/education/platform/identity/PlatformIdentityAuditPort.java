@@ -2,6 +2,7 @@ package com.darkfactory.education.platform.identity;
 
 import com.darkfactory.education.identityaccess.auth.AuthenticatedUserPrincipal;
 import com.darkfactory.education.identityaccess.auth.IdentityAuditPort;
+import com.darkfactory.education.identityaccess.auth.IdentityRoleAssignmentResponse;
 import com.darkfactory.education.identityaccess.auth.IdentityUserResponse;
 import com.darkfactory.education.platform.audit.AuditEventWriteCommand;
 import com.darkfactory.education.platform.audit.AuditService;
@@ -28,6 +29,19 @@ public class PlatformIdentityAuditPort implements IdentityAuditPort {
                 actor.username(),
                 null,
                 createdUser,
+                auditMetadata(actor)
+        ));
+    }
+
+    @Override
+    public void recordRoleAssigned(AuthenticatedUserPrincipal actor, IdentityRoleAssignmentResponse createdAssignment) {
+        auditService.recordEvent(new AuditEventWriteCommand(
+                "IDENTITY_ROLE_ASSIGNMENT",
+                createdAssignment.assignmentId().toString(),
+                "CREATE",
+                actor.username(),
+                null,
+                createdAssignment,
                 auditMetadata(actor)
         ));
     }

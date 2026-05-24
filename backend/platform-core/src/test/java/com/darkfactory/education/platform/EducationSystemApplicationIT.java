@@ -152,7 +152,7 @@ class EducationSystemApplicationIT {
         );
 
         assertThat(markerCount).isEqualTo(1);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("9");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("10");
     }
 
     @Test
@@ -179,20 +179,26 @@ class EducationSystemApplicationIT {
                 .map(info -> info.getVersion().getVersion())
                 .toArray(String[]::new);
 
-        assertThat(appliedVersions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9");
+        assertThat(appliedVersions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
     }
 
     @Test
     void bootstrapAdminIsCreatedForTheActiveDeploymentTenant() {
         Integer userCount = jdbcTemplate.queryForObject("select count(*) from identity_user", Integer.class);
+        Integer roleAssignmentCount = jdbcTemplate.queryForObject("select count(*) from identity_role_assignment", Integer.class);
 
         assertThat(userCount).isEqualTo(1);
+        assertThat(roleAssignmentCount).isEqualTo(1);
         assertThat(jdbcTemplate.queryForObject("select username from identity_user", String.class))
                 .isEqualTo(BOOTSTRAP_ADMIN_USERNAME);
         assertThat(jdbcTemplate.queryForObject("select authority from identity_user", String.class))
                 .isEqualTo("ADMIN");
         assertThat(jdbcTemplate.queryForObject("select status from identity_user", String.class))
                 .isEqualTo("ACTIVE");
+        assertThat(jdbcTemplate.queryForObject("select role_code from identity_role_assignment", String.class))
+                .isEqualTo("COUNTRY_ADMIN");
+        assertThat(jdbcTemplate.queryForObject("select scope_path from identity_role_assignment", String.class))
+                .isEqualTo("TENANT:%s".formatted(tenantContextService.getActiveTenant().tenantId()));
     }
 
     @Test
@@ -285,7 +291,126 @@ class EducationSystemApplicationIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.username").value("teacher.one"))
                 .andExpect(jsonPath("$.displayName").value("Teacher One"))
-                .andExpect(jsonPath("$.authority").value("USER"));
+                .andExpect(jsonPath("$.authority").value("USER"))
+                .andExpect(jsonPath("$.roles").isArray())
+                .andExpect(jsonPath("$.roles").isEmpty());
+    }
+
+    @Test
+    void countryAdminCanAssignTeacherRoleAndTeacherCannotAccessAnotherInstitution() throws Exception {
+        String adminToken = loginAndExtractAccessToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD);
+        UUID teacherUserId = createUserAndExtractUserId(
+                adminToken,
+                "teacher.scope",
+                "TeacherPassword!123",
+                "Teacher Scope"
+        );
+
+        assignRole(
+                adminToken,
+                teacherUserId,
+                "teacher",
+                institutionScopePathJson("school-01")
+        );
+
+        mockMvc.perform(get("/api/v1/identity/users/{userId}/role-assignments", teacherUserId)
+                        .header("Authorization", bearer(adminToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].roleCode").value("teacher"))
+                .andExpect(jsonPath("$[0].scopePath[0].scopeType").value("TENANT"))
+                .andExpect(jsonPath("$[0].scopePath[1].scopeType").value("INSTITUTION"))
+                .andExpect(jsonPath("$[0].scopePath[1].scopeKey").value("school-01"));
+
+        Integer auditCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from audit_event
+                where entity_type = 'IDENTITY_ROLE_ASSIGNMENT'
+                  and action_type = 'CREATE'
+                  and actor = ?
+                  and new_value_json ->> 'roleCode' = ?
+                """,
+                Integer.class,
+                BOOTSTRAP_ADMIN_USERNAME,
+                "teacher"
+        );
+        assertThat(auditCount).isEqualTo(1);
+
+        String teacherToken = loginAndExtractAccessToken("teacher.scope", "TeacherPassword!123");
+
+        mockMvc.perform(get("/api/v1/identity/access/institutions/{institutionKey}/teaching-view", "school-01")
+                        .header("Authorization", bearer(teacherToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.permission").value("VIEW_INSTITUTION"))
+                .andExpect(jsonPath("$.effectiveRoles[0]").value("teacher"));
+
+        mockMvc.perform(get("/api/v1/identity/access/institutions/{institutionKey}/teaching-view", "school-02")
+                        .header("Authorization", bearer(teacherToken)))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/api/v1/identity/access/institutions/{institutionKey}/management", "school-01")
+                        .header("Authorization", bearer(teacherToken)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void institutionAdminCanManageOwnInstitutionButNotAnother() throws Exception {
+        String adminToken = loginAndExtractAccessToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD);
+        UUID institutionAdminUserId = createUserAndExtractUserId(
+                adminToken,
+                "institution.admin",
+                "InstitutionPassword!123",
+                "Institution Admin"
+        );
+
+        assignRole(
+                adminToken,
+                institutionAdminUserId,
+                "institution-admin",
+                institutionScopePathJson("school-01")
+        );
+
+        String institutionAdminToken = loginAndExtractAccessToken("institution.admin", "InstitutionPassword!123");
+
+        mockMvc.perform(post("/api/v1/identity/access/institutions/{institutionKey}/management", "school-01")
+                        .header("Authorization", bearer(institutionAdminToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.permission").value("MANAGE_INSTITUTION"))
+                .andExpect(jsonPath("$.effectiveRoles[0]").value("institution-admin"));
+
+        mockMvc.perform(post("/api/v1/identity/access/institutions/{institutionKey}/management", "school-02")
+                        .header("Authorization", bearer(institutionAdminToken)))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void parentCanViewOnlyOwnChildStudentScope() throws Exception {
+        String adminToken = loginAndExtractAccessToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD);
+        UUID parentUserId = createUserAndExtractUserId(
+                adminToken,
+                "parent.scope",
+                "ParentPassword!123",
+                "Parent Scope"
+        );
+
+        assignRole(
+                adminToken,
+                parentUserId,
+                "parent",
+                studentScopePathJson("school-01", "student-01")
+        );
+
+        String parentToken = loginAndExtractAccessToken("parent.scope", "ParentPassword!123");
+
+        mockMvc.perform(get("/api/v1/identity/access/students/{institutionKey}/{studentKey}/view", "school-01", "student-01")
+                        .header("Authorization", bearer(parentToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.permission").value("VIEW_STUDENT"))
+                .andExpect(jsonPath("$.effectiveRoles[0]").value("parent"));
+
+        mockMvc.perform(get("/api/v1/identity/access/students/{institutionKey}/{studentKey}/view", "school-01", "student-02")
+                        .header("Authorization", bearer(parentToken)))
+                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -760,7 +885,12 @@ class EducationSystemApplicationIT {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/api/v1/identity/auth/login")))
                 .andExpect(content().string(containsString("/api/v1/identity/users")))
-                .andExpect(content().string(containsString("/api/v1/identity/me")));
+                .andExpect(content().string(containsString("/api/v1/identity/me")))
+                .andExpect(content().string(containsString("/api/v1/identity/role-assignments")))
+                .andExpect(content().string(containsString("/api/v1/identity/users/{userId}/role-assignments")))
+                .andExpect(content().string(containsString("/api/v1/identity/access/institutions/{institutionKey}/teaching-view")))
+                .andExpect(content().string(containsString("/api/v1/identity/access/institutions/{institutionKey}/management")))
+                .andExpect(content().string(containsString("/api/v1/identity/access/students/{institutionKey}/{studentKey}/view")));
     }
 
     @Test
@@ -806,8 +936,64 @@ class EducationSystemApplicationIT {
     }
 
     private void resetIdentityData() {
+        jdbcTemplate.update("delete from identity_role_assignment");
         jdbcTemplate.update("delete from identity_user");
         identityBootstrapService.ensureBootstrapAdmin();
+    }
+
+    private UUID createUserAndExtractUserId(String adminToken, String username, String password, String displayName) throws Exception {
+        String responseBody = mockMvc.perform(post("/api/v1/identity/users")
+                        .header("Authorization", bearer(adminToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "username":"%s",
+                                  "initialPassword":"%s",
+                                  "displayName":"%s",
+                                  "status":"ACTIVE"
+                                }
+                                """.formatted(username, password, displayName)))
+                .andExpect(status().isCreated())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return UUID.fromString(objectMapper.readTree(responseBody).path("userId").asText());
+    }
+
+    private void assignRole(String adminToken, UUID userId, String roleCode, String scopePathJson) throws Exception {
+        mockMvc.perform(post("/api/v1/identity/role-assignments")
+                        .header("Authorization", bearer(adminToken))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "userId":"%s",
+                                  "roleCode":"%s",
+                                  "scopePath":%s
+                                }
+                                """.formatted(userId, roleCode, scopePathJson)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.userId").value(userId.toString()))
+                .andExpect(jsonPath("$.roleCode").value(roleCode));
+    }
+
+    private String institutionScopePathJson(String institutionKey) {
+        return """
+                [
+                  {"scopeType":"TENANT","scopeKey":"%s"},
+                  {"scopeType":"INSTITUTION","scopeKey":"%s"}
+                ]
+                """.formatted(tenantContextService.getActiveTenant().tenantId(), institutionKey);
+    }
+
+    private String studentScopePathJson(String institutionKey, String studentKey) {
+        return """
+                [
+                  {"scopeType":"TENANT","scopeKey":"%s"},
+                  {"scopeType":"INSTITUTION","scopeKey":"%s"},
+                  {"scopeType":"STUDENT","scopeKey":"%s"}
+                ]
+                """.formatted(tenantContextService.getActiveTenant().tenantId(), institutionKey, studentKey);
     }
 
     private void putConfigurationFieldDefinition(String fieldKey, String valueType, String mergeStrategy, boolean overridesAllowed) throws Exception {

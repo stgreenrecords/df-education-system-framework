@@ -198,6 +198,14 @@ The same application image and source code should run across providers. The IaC 
 - Full hierarchical RBAC, MFA, external federation, password reset, and broader identity lifecycle workflows remain follow-up stories layered on top of the same authentication foundation.
 - Secrets such as bootstrap credentials and token-signing configuration must stay externalized; they must not be committed to source control or baked into portable release artifacts.
 
+### Phase 1 RBAC foundation
+
+- The first RBAC implementation should remain backend-only and extend the accepted `identity-access` authentication foundation rather than replacing the login contract.
+- RBAC should use a predefined generic role catalogue (`COUNTRY_ADMIN`, `REGION_ADMIN`, `CITY_ADMIN`, `INSTITUTION_ADMIN`, `TEACHER`, `STUDENT`, `PARENT`) with tenant-scoped role assignments and generic scope descriptors instead of country-specific authorization branches.
+- Authorization should evaluate current role assignments server-side during request handling so role changes can take effect without oversized or brittle JWT role payloads.
+- Before later school/person domain stories exist, Phase 1 may prove authorization boundaries through representative protected backend routes and resource-scope contexts, but the policy engine must stay reusable for future real domain modules.
+- Parent/student and institution-scope visibility must be modeled through generic scope-aware access rules, not one-off controller conditionals.
+
 ### Data protection
 
 - Encryption at rest (database-level + sensitive field encryption)

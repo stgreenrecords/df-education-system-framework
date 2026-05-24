@@ -14,7 +14,7 @@ P0
 
 ## Current state
 
-READY_FOR_DEV
+READY_FOR_QA
 
 ## Business goal
 
@@ -77,4 +77,6 @@ Complete the next missing MVP security baseline after authentication by introduc
 | 2026-05-24 23:19 local | sa | OPEN -> NEEDS_ARCHITECTURE | Selected `STORY-081` as the next highest-priority actionable backlog story after `STORY-080` reached `DONE` because it is a Critical Phase 1 dependency-root follow-up to authentication, it is explicitly called out by the roadmap/MVP security baseline, and it unblocks later protected backend features more directly than the remaining draft stories. |
 | 2026-05-24 23:19 local | sa | NEEDS_ARCHITECTURE -> ARCHITECTURE_IN_PROGRESS | Started architecture because RBAC affects identity persistence, authorization policy design, protected APIs, and future domain-module security behavior. |
 | 2026-05-24 23:19 local | sa | ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV | Completed the backend-oriented RBAC solution design, recorded the Phase 1 RBAC decision, updated shared architecture guidance, and routed the story to `backend-dev` as a backend-only implementation task. |
+| 2026-05-24 23:25 local | backend-dev | READY_FOR_DEV -> DEV_IN_PROGRESS | Started backend implementation after reviewing the SA design/handoff, runtime lane queue, and current `STORY-080` auth/security/test seams. The implementation will stay tightly scoped to tenant-scoped role assignments, generic scope-aware authorization checks, representative proof endpoints, and required runtime/artifact updates. |
+| 2026-05-24 23:32 local | backend-dev | DEV_IN_PROGRESS -> READY_FOR_QA | Completed the backend-only RBAC implementation by adding migration `V10`, tenant-scoped predefined role assignments, server-side principal role enrichment, generic scope-path authorization evaluation, bootstrap country-admin reconciliation, minimal role-assignment APIs, representative institution/student authorization-proof endpoints, audit convergence for role assignments, and focused plus full backend verification. |
 
