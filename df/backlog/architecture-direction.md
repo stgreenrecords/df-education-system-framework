@@ -138,6 +138,9 @@ This operating model is the governing boundary for later deployment work. Kubern
 - Configuration field behavior should be data-driven through field-definition metadata such as value type and merge strategy rather than feature-specific or country-specific code branches.
 - The first merge strategy set should stay minimal: `REPLACE` for direct override behavior and `EXTEND_SET` for inherited-plus-local option aggregation.
 - Compatibility reports, inheritance-break workflows, and richer merge semantics should remain follow-up work rather than expanding the first inheritance foundation story.
+- The next follow-up layer should keep the configuration engine in `backend/platform-core` and add three generic capabilities: explicit validation/preview of blocked writes, auditable inheritance-break request recording with justification, and compatibility reporting that lists affected institution scope identifiers for ancestor changes.
+- Inheritance-break submissions must be recorded as requests with audit traceability, not as automatic lock bypasses.
+- Until authoritative organization persistence exists, compatibility reports should remain generic and identify affected institution scope paths/ids rather than depending on rich institution metadata.
 
 ### Audit trail foundation
 

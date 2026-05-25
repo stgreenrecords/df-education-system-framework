@@ -14,7 +14,7 @@ P1
 
 ## Current state
 
-READY_FOR_QA
+DONE
 
 ## Business goal
 
@@ -62,4 +62,6 @@ Complete the remaining Phase 1 release/update-manager concept by documenting how
 | 2026-05-25 12:39 local | sa | OPEN -> NEEDS_ARCHITECTURE | Selected `STORY-040` as the next highest-priority actionable task because Phase 1 still requires the release/update-manager concept and release-package contract, and this story safely unblocks later rollout/tooling work more directly than the remaining implementation-heavy follow-ups. |
 | 2026-05-25 12:39 local | sa | NEEDS_ARCHITECTURE -> ARCHITECTURE_IN_PROGRESS | Started architecture because the story defines the release artifact contract, compatibility-reporting model, migration/rollback expectations, and sovereign deployment boundaries for future release tooling. |
 | 2026-05-25 12:39 local | sa | ARCHITECTURE_IN_PROGRESS -> READY_FOR_QA | Completed the documentation-only release package and compatibility-checker design, recorded `DECISION-020`, updated shared architecture guidance, and prepared QA handoff. |
+| 2026-05-25 12:49 local | qa | READY_FOR_QA -> QA_IN_PROGRESS -> READY_FOR_PO | Independently reviewed the story artifact package, confirmed all three acceptance criteria, verified package/checker coverage plus sovereign-model consistency, confirmed documentation-only routing with no lane leakage, and passed the story to PO with no defects. |
+| 2026-05-25 12:52 local | po | READY_FOR_PO -> PO_REVIEW -> DONE | Reviewed the QA-approved documentation-only release-management architecture package, confirmed the release-package and compatibility-checker concept is sufficient product direction to unblock future rollout/update tooling, documented why screenshots are not applicable, and accepted the story. |
 

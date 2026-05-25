@@ -120,5 +120,11 @@
   - Related task: `STORY-040`
   - Record: `df/artifacts/STORY-040/decision-020-release-package-format-and-compatibility-checker.md`
 
+- `DECISION-021` - Phase 1 configuration follow-up work stays in `backend/platform-core` and adds explicit validation, auditable inheritance-break requests, and generic institution-scope compatibility reporting without auto-bypassing locks or depending on unfinished organization persistence.
+  - Date: 2026-05-25
+  - Status: Accepted
+  - Related task: `STORY-031`
+  - Record: `df/artifacts/STORY-031/decision-021-configuration-validation-and-impact-reporting.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 

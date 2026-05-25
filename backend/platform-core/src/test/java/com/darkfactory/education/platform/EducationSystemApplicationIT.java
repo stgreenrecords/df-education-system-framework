@@ -152,7 +152,7 @@ class EducationSystemApplicationIT {
         );
 
         assertThat(markerCount).isEqualTo(1);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("10");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("11");
     }
 
     @Test
@@ -179,7 +179,7 @@ class EducationSystemApplicationIT {
                 .map(info -> info.getVersion().getVersion())
                 .toArray(String[]::new);
 
-        assertThat(appliedVersions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10");
+        assertThat(appliedVersions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
     }
 
     @Test
@@ -726,6 +726,158 @@ class EducationSystemApplicationIT {
     }
 
     @Test
+    void validationEndpointReturnsConflictForLockedLowerScopeOverrideAttempt() throws Exception {
+        putConfigurationFieldDefinition("grading.policy", "STRING", "REPLACE", true);
+        putConfigurationValue(
+                "grading.policy",
+                """
+                [
+                  {"scopeType":"COUNTRY","scopeKey":"country"}
+                ]
+                """,
+                "\"national-default\"",
+                true
+        );
+
+        mockMvc.perform(post("/api/v1/platform/configuration/validate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fieldKey":"grading.policy",
+                                  "scopePath":[
+                                    {"scopeType":"COUNTRY","scopeKey":"country"},
+                                    {"scopeType":"INSTITUTION","scopeKey":"school-01"}
+                                  ],
+                                  "value":"school-specific",
+                                  "locked":false
+                                }
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.fieldKey").value("grading.policy"))
+                .andExpect(jsonPath("$.valid").value(false))
+                .andExpect(jsonPath("$.status").value("BLOCKED_BY_ANCESTOR_LOCK"))
+                .andExpect(jsonPath("$.message", containsString("locked by ancestor scope")))
+                .andExpect(jsonPath("$.blockingScopes[0].scopeType").value("COUNTRY"));
+    }
+
+    @Test
+    void inheritanceBreakRequestIsRecordedAndAudited() throws Exception {
+        putConfigurationFieldDefinition("grading.policy", "STRING", "REPLACE", true);
+        putConfigurationValue(
+                "grading.policy",
+                """
+                [
+                  {"scopeType":"COUNTRY","scopeKey":"country"}
+                ]
+                """,
+                "\"national-default\"",
+                true
+        );
+
+        mockMvc.perform(post("/api/v1/platform/configuration/inheritance-break-requests")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fieldKey":"grading.policy",
+                                  "targetScopePath":[
+                                    {"scopeType":"COUNTRY","scopeKey":"country"},
+                                    {"scopeType":"INSTITUTION","scopeKey":"school-01"}
+                                  ],
+                                  "proposedValue":"school-specific",
+                                  "justification":"School pilot requires a local grading exception",
+                                  "requestedBy":"configuration-admin"
+                                }
+                                """))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.fieldKey").value("grading.policy"))
+                .andExpect(jsonPath("$.blockingAncestorScopeType").value("COUNTRY"))
+                .andExpect(jsonPath("$.blockingAncestorScopeKey").value("country"))
+                .andExpect(jsonPath("$.status").value("SUBMITTED"))
+                .andExpect(jsonPath("$.justification").value("School pilot requires a local grading exception"))
+                .andExpect(jsonPath("$.requestedBy").value("configuration-admin"));
+
+        Integer requestCount = jdbcTemplate.queryForObject(
+                "select count(*) from configuration_inheritance_break_request where field_key = ? and requested_by = ?",
+                Integer.class,
+                "grading.policy",
+                "configuration-admin"
+        );
+        assertThat(requestCount).isEqualTo(1);
+
+        Integer auditCount = jdbcTemplate.queryForObject(
+                """
+                select count(*)
+                from audit_event
+                where entity_type = 'CONFIGURATION_INHERITANCE_BREAK_REQUEST'
+                  and action_type = 'CREATE'
+                  and actor = ?
+                  and new_value_json ->> 'fieldKey' = ?
+                """,
+                Integer.class,
+                "configuration-admin",
+                "grading.policy"
+        );
+        assertThat(auditCount).isEqualTo(1);
+    }
+
+    @Test
+    void compatibilityReportListsAffectedInstitutionOverridesForCountryChange() throws Exception {
+        putConfigurationFieldDefinition("subjects.allowed", "STRING_SET", "EXTEND_SET", true);
+        putConfigurationValue(
+                "subjects.allowed",
+                """
+                [
+                  {"scopeType":"COUNTRY","scopeKey":"country"}
+                ]
+                """,
+                "[\"math\",\"history\"]",
+                false
+        );
+        putConfigurationValue(
+                "subjects.allowed",
+                """
+                [
+                  {"scopeType":"COUNTRY","scopeKey":"country"},
+                  {"scopeType":"INSTITUTION","scopeKey":"school-01"}
+                ]
+                """,
+                "[\"biology\"]",
+                false
+        );
+        putConfigurationValue(
+                "subjects.allowed",
+                """
+                [
+                  {"scopeType":"COUNTRY","scopeKey":"country"},
+                  {"scopeType":"INSTITUTION","scopeKey":"school-02"}
+                ]
+                """,
+                "[\"chemistry\"]",
+                false
+        );
+
+        mockMvc.perform(post("/api/v1/platform/configuration/compatibility-report")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "fieldKey":"subjects.allowed",
+                                  "scopePath":[
+                                    {"scopeType":"COUNTRY","scopeKey":"country"}
+                                  ],
+                                  "proposedValue":["math","history","physics"]
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.fieldKey").value("subjects.allowed"))
+                .andExpect(jsonPath("$.impactCount").value(2))
+                .andExpect(jsonPath("$.impacts[0].institutionScope.scopeKey").value("school-01"))
+                .andExpect(jsonPath("$.impacts[0].impactLevel").value("WARNING"))
+                .andExpect(jsonPath("$.impacts[0].reason", containsString("changes the effective institution configuration")))
+                .andExpect(jsonPath("$.impacts[0].projectedEffectiveValue[2]").value("physics"))
+                .andExpect(jsonPath("$.impacts[1].institutionScope.scopeKey").value("school-02"));
+    }
+
+    @Test
     void extensibleConfigurationMergesInheritedAndLocalOptions() throws Exception {
         putConfigurationFieldDefinition("subjects.allowed", "STRING_SET", "EXTEND_SET", true);
         putConfigurationValue(
@@ -866,6 +1018,15 @@ class EducationSystemApplicationIT {
     }
 
     @Test
+    void apiDocsContainsConfigurationValidationEndpoints() throws Exception {
+        mockMvc.perform(get("/api-docs"))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("/api/v1/platform/configuration/validate")))
+                .andExpect(content().string(containsString("/api/v1/platform/configuration/inheritance-break-requests")))
+                .andExpect(content().string(containsString("/api/v1/platform/configuration/compatibility-report")));
+    }
+
+    @Test
     void apiDocsContainsAuditEventsEndpoint() throws Exception {
         mockMvc.perform(get("/api-docs"))
                 .andExpect(status().isOk())
@@ -920,6 +1081,7 @@ class EducationSystemApplicationIT {
     }
 
     private void resetConfigurationData() {
+        jdbcTemplate.update("delete from configuration_inheritance_break_request");
         jdbcTemplate.update("delete from configuration_value");
         jdbcTemplate.update("delete from configuration_field_definition");
     }

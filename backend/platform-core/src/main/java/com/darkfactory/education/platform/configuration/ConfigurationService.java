@@ -1,12 +1,16 @@
 package com.darkfactory.education.platform.configuration;
 
+import com.darkfactory.education.platform.audit.AuditEventWriteCommand;
+import com.darkfactory.education.platform.audit.AuditService;
 import com.darkfactory.education.platform.tenant.TenantContextService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -19,18 +23,24 @@ public class ConfigurationService {
 
     private final ConfigurationFieldDefinitionRepository fieldDefinitionRepository;
     private final ConfigurationValueRepository configurationValueRepository;
+    private final ConfigurationInheritanceBreakRequestRepository inheritanceBreakRequestRepository;
     private final TenantContextService tenantContextService;
+    private final AuditService auditService;
     private final ObjectMapper objectMapper;
 
     public ConfigurationService(
             ConfigurationFieldDefinitionRepository fieldDefinitionRepository,
             ConfigurationValueRepository configurationValueRepository,
+            ConfigurationInheritanceBreakRequestRepository inheritanceBreakRequestRepository,
             TenantContextService tenantContextService,
+            AuditService auditService,
             ObjectMapper objectMapper
     ) {
         this.fieldDefinitionRepository = fieldDefinitionRepository;
         this.configurationValueRepository = configurationValueRepository;
+        this.inheritanceBreakRequestRepository = inheritanceBreakRequestRepository;
         this.tenantContextService = tenantContextService;
+        this.auditService = auditService;
         this.objectMapper = objectMapper;
     }
 
@@ -60,25 +70,154 @@ public class ConfigurationService {
             Object rawValue,
             Boolean locked
     ) {
+        ValidatedConfigurationChange validatedChange = validateAndNormalize(fieldKey, scopePath, rawValue, locked);
+        return configurationValueRepository.upsert(
+                validatedChange.tenantId(),
+                validatedChange.fieldKey(),
+                scopePath.targetScope(),
+                validatedChange.normalizedValue(),
+                validatedChange.locked()
+        );
+    }
+
+    public ConfigurationValidationResponse validateValue(
+            String fieldKey,
+            ScopePath scopePath,
+            Object rawValue,
+            Boolean locked
+    ) {
         String normalizedFieldKey = normalizeFieldKey(fieldKey);
         ConfigurationFieldDefinition fieldDefinition = getFieldDefinition(normalizedFieldKey);
         UUID tenantId = tenantContextService.getActiveTenant().tenantId();
-        boolean normalizedLocked = locked != null && locked;
 
-        validateOverrideAllowed(fieldDefinition, scopePath);
+        ValidationFailure overrideFailure = validateOverrideAllowed(fieldDefinition, scopePath);
+        if (overrideFailure != null) {
+            return ConfigurationValidationResponse.invalid(
+                    normalizedFieldKey,
+                    overrideFailure.code(),
+                    overrideFailure.message(),
+                    overrideFailure.blockingScopes()
+            );
+        }
 
         Map<ConfigurationScope, ConfigurationValueEntry> storedValuesByScope = valuesByScope(
                 configurationValueRepository.findByTenantAndFieldKey(tenantId, normalizedFieldKey)
         );
-        validateNoLockedAncestors(scopePath, storedValuesByScope, normalizedFieldKey);
+        List<ConfigurationScope> lockedAncestors = findLockedAncestors(scopePath, storedValuesByScope);
+        if (!lockedAncestors.isEmpty()) {
+            return ConfigurationValidationResponse.invalid(
+                    normalizedFieldKey,
+                    "BLOCKED_BY_ANCESTOR_LOCK",
+                    formatLockedAncestorMessage(normalizedFieldKey, lockedAncestors.get(0)),
+                    lockedAncestors
+            );
+        }
 
-        JsonNode normalizedValue = fieldDefinition.valueType().normalize(objectMapper.valueToTree(rawValue), objectMapper);
-        return configurationValueRepository.upsert(
+        fieldDefinition.valueType().normalize(objectMapper.valueToTree(rawValue), objectMapper);
+        return ConfigurationValidationResponse.valid(normalizedFieldKey);
+    }
+
+    public ConfigurationInheritanceBreakRequestRecord submitInheritanceBreakRequest(
+            String fieldKey,
+            ScopePath targetScopePath,
+            Object proposedValue,
+            String justification,
+            String requestedBy
+    ) {
+        String normalizedFieldKey = normalizeFieldKey(fieldKey);
+        ConfigurationFieldDefinition fieldDefinition = getFieldDefinition(normalizedFieldKey);
+        UUID tenantId = tenantContextService.getActiveTenant().tenantId();
+
+        if (targetScopePath.targetScope().scopeType() == ConfigurationScopeType.COUNTRY) {
+            throw new IllegalArgumentException("Inheritance-break requests require a lower-than-COUNTRY target scope");
+        }
+
+        Map<ConfigurationScope, ConfigurationValueEntry> storedValuesByScope = valuesByScope(
+                configurationValueRepository.findByTenantAndFieldKey(tenantId, normalizedFieldKey)
+        );
+        List<ConfigurationScope> lockedAncestors = findLockedAncestors(targetScopePath, storedValuesByScope);
+        if (lockedAncestors.isEmpty()) {
+            throw new IllegalArgumentException("No locked ancestor scope exists for the supplied field and target scope path");
+        }
+
+        JsonNode normalizedValue = fieldDefinition.valueType().normalize(objectMapper.valueToTree(proposedValue), objectMapper);
+        String normalizedJustification = normalizeRequiredText(justification, "justification");
+        String normalizedRequestedBy = normalizeRequiredText(requestedBy, "requestedBy");
+        ConfigurationScope blockingAncestor = lockedAncestors.get(0);
+
+        ConfigurationInheritanceBreakRequestRecord record = inheritanceBreakRequestRepository.append(
                 tenantId,
                 normalizedFieldKey,
-                scopePath.targetScope(),
+                targetScopePath.scopes(),
+                blockingAncestor,
                 normalizedValue,
-                normalizedLocked
+                normalizedJustification,
+                normalizedRequestedBy,
+                ConfigurationInheritanceBreakRequestStatus.SUBMITTED
+        );
+
+        auditService.recordEvent(new AuditEventWriteCommand(
+                "CONFIGURATION_INHERITANCE_BREAK_REQUEST",
+                record.requestId().toString(),
+                "CREATE",
+                normalizedRequestedBy,
+                null,
+                ConfigurationInheritanceBreakRequestResponse.from(record),
+                Map.of(
+                        "fieldKey", normalizedFieldKey,
+                        "blockingAncestorScopeType", blockingAncestor.scopeType().name(),
+                        "blockingAncestorScopeKey", blockingAncestor.scopeKey()
+                )
+        ));
+
+        return record;
+    }
+
+    public ConfigurationCompatibilityReportResponse generateCompatibilityReport(
+            String fieldKey,
+            ScopePath scopePath,
+            Object proposedValue
+    ) {
+        String normalizedFieldKey = normalizeFieldKey(fieldKey);
+        ConfigurationFieldDefinition fieldDefinition = getFieldDefinition(normalizedFieldKey);
+        UUID tenantId = tenantContextService.getActiveTenant().tenantId();
+
+        if (scopePath.targetScope().scopeType() != ConfigurationScopeType.COUNTRY) {
+            throw new IllegalArgumentException("Compatibility reports currently support COUNTRY/root scope updates only");
+        }
+
+        JsonNode normalizedProposedValue = fieldDefinition.valueType().normalize(objectMapper.valueToTree(proposedValue), objectMapper);
+        Map<ConfigurationScope, ConfigurationValueEntry> storedValuesByScope = valuesByScope(
+                configurationValueRepository.findByTenantAndFieldKey(tenantId, normalizedFieldKey)
+        );
+
+        Map<ConfigurationScope, ConfigurationValueEntry> projectedValuesByScope = new LinkedHashMap<>(storedValuesByScope);
+        projectedValuesByScope.put(
+                scopePath.targetScope(),
+                new ConfigurationValueEntry(
+                        null,
+                        tenantId,
+                        normalizedFieldKey,
+                        scopePath.targetScope().scopeType(),
+                        scopePath.targetScope().scopeKey(),
+                        normalizedProposedValue,
+                        false,
+                        null,
+                        null
+                )
+        );
+
+        List<ConfigurationCompatibilityReportResponse.ConfigurationCompatibilityImpactResponse> impacts = storedValuesByScope.values().stream()
+                .filter(entry -> entry.scopeType() == ConfigurationScopeType.INSTITUTION)
+                .sorted(Comparator.comparing(ConfigurationValueEntry::scopeKey))
+                .map(entry -> buildCompatibilityImpact(fieldDefinition, normalizedFieldKey, scopePath.targetScope(), storedValuesByScope, projectedValuesByScope, entry.scope()))
+                .toList();
+
+        return ConfigurationCompatibilityReportResponse.of(
+                normalizedFieldKey,
+                scopePath.targetScope(),
+                normalizedProposedValue,
+                impacts
         );
     }
 
@@ -90,10 +229,44 @@ public class ConfigurationService {
                 configurationValueRepository.findByTenantAndFieldKey(tenantId, normalizedFieldKey)
         );
 
+        return resolve(fieldDefinition, scopePath, valuesByScope);
+    }
+
+    private ResolvedConfigurationValue resolve(
+            ConfigurationFieldDefinition fieldDefinition,
+            ScopePath scopePath,
+            Map<ConfigurationScope, ConfigurationValueEntry> valuesByScope
+    ) {
+
         return switch (fieldDefinition.mergeStrategy()) {
             case REPLACE -> resolveReplace(fieldDefinition, scopePath, valuesByScope);
             case EXTEND_SET -> resolveExtendSet(fieldDefinition, scopePath, valuesByScope);
         };
+    }
+
+    private ValidatedConfigurationChange validateAndNormalize(
+            String fieldKey,
+            ScopePath scopePath,
+            Object rawValue,
+            Boolean locked
+    ) {
+        String normalizedFieldKey = normalizeFieldKey(fieldKey);
+        ConfigurationFieldDefinition fieldDefinition = getFieldDefinition(normalizedFieldKey);
+        UUID tenantId = tenantContextService.getActiveTenant().tenantId();
+        boolean normalizedLocked = locked != null && locked;
+
+        ValidationFailure overrideFailure = validateOverrideAllowed(fieldDefinition, scopePath);
+        if (overrideFailure != null) {
+            throw new LockedConfigurationOverrideException(overrideFailure.message());
+        }
+
+        Map<ConfigurationScope, ConfigurationValueEntry> storedValuesByScope = valuesByScope(
+                configurationValueRepository.findByTenantAndFieldKey(tenantId, normalizedFieldKey)
+        );
+        validateNoLockedAncestors(scopePath, storedValuesByScope, normalizedFieldKey);
+        JsonNode normalizedValue = fieldDefinition.valueType().normalize(objectMapper.valueToTree(rawValue), objectMapper);
+
+        return new ValidatedConfigurationChange(normalizedFieldKey, tenantId, normalizedLocked, normalizedValue);
     }
 
     private ResolvedConfigurationValue resolveReplace(
@@ -173,12 +346,15 @@ public class ConfigurationService {
         }
     }
 
-    private void validateOverrideAllowed(ConfigurationFieldDefinition fieldDefinition, ScopePath scopePath) {
+    private ValidationFailure validateOverrideAllowed(ConfigurationFieldDefinition fieldDefinition, ScopePath scopePath) {
         if (!fieldDefinition.overridesAllowed() && scopePath.targetScope().scopeType() != ConfigurationScopeType.COUNTRY) {
-            throw new LockedConfigurationOverrideException(
-                    "Field %s does not allow lower-scope overrides".formatted(fieldDefinition.fieldKey())
+            return new ValidationFailure(
+                    "BLOCKED_BY_FIELD_POLICY",
+                    "Field %s does not allow lower-scope overrides".formatted(fieldDefinition.fieldKey()),
+                    List.of(ConfigurationScope.country())
             );
         }
+        return null;
     }
 
     private void validateNoLockedAncestors(
@@ -190,14 +366,32 @@ public class ConfigurationService {
             ConfigurationValueEntry ancestorValue = storedValuesByScope.get(ancestorScope);
             if (ancestorValue != null && ancestorValue.locked()) {
                 throw new LockedConfigurationOverrideException(
-                        "Field %s is locked by ancestor scope %s(%s)".formatted(
-                                fieldKey,
-                                ancestorScope.scopeType().name(),
-                                ancestorScope.scopeKey()
-                        )
+                        formatLockedAncestorMessage(fieldKey, ancestorScope)
                 );
             }
         }
+    }
+
+    private List<ConfigurationScope> findLockedAncestors(
+            ScopePath scopePath,
+            Map<ConfigurationScope, ConfigurationValueEntry> storedValuesByScope
+    ) {
+        List<ConfigurationScope> lockedAncestors = new ArrayList<>();
+        for (ConfigurationScope ancestorScope : scopePath.ancestorScopes()) {
+            ConfigurationValueEntry ancestorValue = storedValuesByScope.get(ancestorScope);
+            if (ancestorValue != null && ancestorValue.locked()) {
+                lockedAncestors.add(ancestorScope);
+            }
+        }
+        return List.copyOf(lockedAncestors);
+    }
+
+    private String formatLockedAncestorMessage(String fieldKey, ConfigurationScope ancestorScope) {
+        return "Field %s is locked by ancestor scope %s(%s)".formatted(
+                fieldKey,
+                ancestorScope.scopeType().name(),
+                ancestorScope.scopeKey()
+        );
     }
 
     private Map<ConfigurationScope, ConfigurationValueEntry> valuesByScope(List<ConfigurationValueEntry> values) {
@@ -220,11 +414,68 @@ public class ConfigurationService {
         return fieldKey.trim();
     }
 
+    private String normalizeRequiredText(String value, String fieldName) {
+        if (!StringUtils.hasText(value)) {
+            throw new IllegalArgumentException(fieldName + " must not be blank");
+        }
+        return value.trim();
+    }
+
     private boolean requireBoolean(Boolean value, String fieldName) {
         if (value == null) {
             throw new IllegalArgumentException(fieldName + " must not be null");
         }
         return value;
+    }
+
+    private ConfigurationCompatibilityReportResponse.ConfigurationCompatibilityImpactResponse buildCompatibilityImpact(
+            ConfigurationFieldDefinition fieldDefinition,
+            String fieldKey,
+            ConfigurationScope sourceScope,
+            Map<ConfigurationScope, ConfigurationValueEntry> currentValuesByScope,
+            Map<ConfigurationScope, ConfigurationValueEntry> projectedValuesByScope,
+            ConfigurationScope institutionScope
+    ) {
+        ScopePath institutionScopePath = ScopePath.fromRequests(List.of(
+                new ConfigurationScopeRequest(sourceScope.scopeType().name(), sourceScope.scopeKey()),
+                new ConfigurationScopeRequest(institutionScope.scopeType().name(), institutionScope.scopeKey())
+        ));
+
+        ResolvedConfigurationValue currentResolved = resolve(fieldDefinition, institutionScopePath, currentValuesByScope);
+        ResolvedConfigurationValue projectedResolved = resolve(fieldDefinition, institutionScopePath, projectedValuesByScope);
+
+        boolean changed = !currentResolved.effectiveValue().equals(projectedResolved.effectiveValue());
+        String impactLevel = changed ? "WARNING" : "INFO";
+        String reason = changed
+                ? "Proposed ancestor update changes the effective institution configuration"
+                : "Institution override remains in effect and should be reviewed against the proposed ancestor update";
+        String suggestedAction = changed
+                ? "Review the institution override and migration steps before applying the ancestor update"
+                : "Review whether the institution override should remain after the ancestor update";
+
+        return ConfigurationCompatibilityReportResponse.ConfigurationCompatibilityImpactResponse.of(
+                institutionScope,
+                impactLevel,
+                reason,
+                suggestedAction,
+                currentResolved.effectiveValue(),
+                projectedResolved.effectiveValue()
+        );
+    }
+
+    private record ValidatedConfigurationChange(
+            String fieldKey,
+            UUID tenantId,
+            boolean locked,
+            JsonNode normalizedValue
+    ) {
+    }
+
+    private record ValidationFailure(
+            String code,
+            String message,
+            List<ConfigurationScope> blockingScopes
+    ) {
     }
 }
 

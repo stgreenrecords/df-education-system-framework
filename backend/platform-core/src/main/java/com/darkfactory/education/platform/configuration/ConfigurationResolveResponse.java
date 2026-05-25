@@ -32,11 +32,5 @@ public record ConfigurationResolveResponse(
                 resolved.contributingScopes().stream().map(ConfigurationScopeResponse::from).toList()
         );
     }
-
-    public record ConfigurationScopeResponse(String scopeType, String scopeKey) {
-        public static ConfigurationScopeResponse from(ConfigurationScope scope) {
-            return new ConfigurationScopeResponse(scope.scopeType().name(), scope.scopeKey());
-        }
-    }
 }
 
