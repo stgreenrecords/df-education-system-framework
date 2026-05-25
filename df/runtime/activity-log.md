@@ -2180,3 +2180,133 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Result: PASS
 - Next: New session required. `po` should perform product review of `STORY-081` and accept or reject the backend-only representative evidence path.
 
+## 2026-05-25 12:05 local - State change
+
+- Task: STORY-081
+- From: READY_FOR_PO
+- To: PO_REVIEW
+- Role: po
+- Reason: Started PO validation of the QA-approved backend-only RBAC foundation against the story acceptance criteria, QA report, and representative protected-route evidence.
+- Evidence: `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/qa-report.md`; `df/artifacts/STORY-081/handoffs.md`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+- Next: Independently rerun the focused RBAC verification and decide acceptance or rejection.
+
+## 2026-05-25 12:05 local - State change
+
+- Task: STORY-081
+- From: PO_REVIEW
+- To: DONE
+- Role: po
+- Reason: PO accepted the backend-only RBAC foundation after independent product validation confirmed the predefined-role and scope-boundary outcomes, documented the non-UI evidence path, and found the representative proof routes sufficient for this Phase 1 story.
+- Evidence: `df/artifacts/STORY-081/po-review.md`; `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/handoffs.md`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify | cat`
+- Next: New session required. The factory/`sa` should inspect the runtime boards and select the next highest-priority actionable task.
+
+## 2026-05-25 12:05 local - po - STORY-081
+
+- State: PO_REVIEW → DONE
+- Action: Independently reran the focused backend RBAC integration suite on macOS, traced the executable teacher/institution-admin/parent authorization scenarios in `EducationSystemApplicationIT`, confirmed migration `V10`, audit convergence, and `/api-docs` exposure, documented why screenshots are not applicable for this backend-only story, and accepted `STORY-081` as product-complete.
+- Evidence: `df/artifacts/STORY-081/po-review.md`; `df/artifacts/STORY-081/qa-report.md`; `df/artifacts/STORY-081/handoffs.md`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `backend/platform-core/src/main/resources/db/migration/V10__create_identity_role_assignment_table.sql`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify | cat`
+- Result: PASS
+- Next: New session required. Factory/`sa` should select the next actionable task from the runtime boards.
+
+## 2026-05-25 12:13 local - po - Backlog addition
+
+- State: OPEN → DRAFT (backlog)
+- Action: Added `STORY-094` to `EPIC-09` as a future backlog item for grade/year-based student UI themes, capturing the request for different styled themes by school grade/year level (for example grade 3 vs grade 4) while keeping theme selection configuration-driven and non-country-specific.
+- Evidence: `df/backlog/user-stories.md`
+- Result: PASS — future backlog item recorded with description, dependencies, and acceptance criteria
+- Next: `sa` can refine and schedule `STORY-094` later when student-facing frontend/dashboard work is prioritized and a designer package can be planned.
+
+## 2026-05-25 12:21 local - State change
+
+- Task: STORY-050
+- From: OPEN
+- To: NEEDS_ARCHITECTURE
+- Role: sa
+- Reason: `STORY-081` reached `DONE` and no active runtime task remained. `STORY-050` was selected as the next highest-priority actionable item because its dependency on `STORY-030` is satisfied, it defines the generic country-template contract still missing from Phase 1, and it directly unblocks the critical Poland template implementation story without violating the data-only country-template rule.
+- Evidence: `df/backlog/roadmap.md`; `df/backlog/mvp-definition.md`; `df/backlog/user-stories.md`; `df/backlog/domain-model.md`; `df/runtime/board.md`
+- Next: Complete the country-template schema and builder design, record the governing decision, and determine whether a delivery lane is required.
+
+## 2026-05-25 12:21 local - State change
+
+- Task: STORY-050
+- From: NEEDS_ARCHITECTURE
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: Architecture is required because the story defines a generic cross-cutting data/package contract, versioning model, approval lifecycle, builder-validation concept, and evidence-traceability rules for future country-template work.
+- Evidence: `df/artifacts/SPIKE-001/poland-template-v1.md`; `df/backlog/final-initial-prompt.md`; `df/backlog/domain-model.md`; `df/backlog/architecture-direction.md`; `df/artifacts/STORY-030/decision-015-generic-configuration-scope-path-and-field-behavior.md`
+- Next: Finalize the documentation-only schema concept, update shared architecture guidance, and prepare QA handoff.
+
+## 2026-05-25 12:21 local - State change
+
+- Task: STORY-050
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: sa
+- Reason: The country-template schema and builder concept, decision record, shared architecture update, runtime updates, and QA handoff are complete; no delivery lane is required because this story is documentation-only.
+- Evidence: `df/artifacts/STORY-050/task.md`; `df/artifacts/STORY-050/solution-design.md`; `df/artifacts/STORY-050/country-template-schema-and-builder-concept.md`; `df/artifacts/STORY-050/decision-019-country-template-schema-and-builder.md`; `df/artifacts/STORY-050/handoffs.md`; `df/runtime/board.md`; `df/runtime/decisions.md`; `df/backlog/architecture-direction.md`
+- Next: `qa` should verify acceptance-criteria coverage, immutable versioning/`draft` lifecycle rules, and consistency with the no-country-specific-code guardrail.
+
+## 2026-05-25 12:21 local - sa - STORY-050
+
+- State: OPEN → NEEDS_ARCHITECTURE → ARCHITECTURE_IN_PROGRESS → READY_FOR_QA
+- Action: Reviewed the post-`STORY-081` runtime queue, selected `STORY-050` as the next actionable backlog item, skipped refinement because the backlog acceptance criteria are explicit, designed a generic country-template schema and builder concept with immutable versioning, approval lifecycle, evidence/source traceability, and data-only guardrails, recorded `DECISION-019`, updated the shared architecture direction, created the task artifact package, and handed the story to QA without routing any delivery lane.
+- Evidence: `df/artifacts/STORY-050/task.md`; `df/artifacts/STORY-050/solution-design.md`; `df/artifacts/STORY-050/country-template-schema-and-builder-concept.md`; `df/artifacts/STORY-050/decision-019-country-template-schema-and-builder.md`; `df/artifacts/STORY-050/handoffs.md`; `df/backlog/final-initial-prompt.md`; `df/backlog/roadmap.md`; `df/backlog/mvp-definition.md`; `df/backlog/domain-model.md`; `df/backlog/user-stories.md`; `df/backlog/architecture-direction.md`; `df/runtime/board.md`; `df/runtime/decisions.md`
+- Result: PASS
+- Next: New session required. `qa` should review `STORY-050` and either move it to `READY_FOR_PO` or return it to `sa` with defects.
+
+## 2026-05-25 12:31 local - State change
+
+- Task: STORY-050
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: Started independent QA verification of the documentation-only country-template schema story after reviewing the task acceptance criteria, SA handoff, decision record, and shared architecture update.
+- Evidence: `df/artifacts/STORY-050/task.md`; `df/artifacts/STORY-050/handoffs.md`; `df/artifacts/STORY-050/solution-design.md`; `df/artifacts/STORY-050/country-template-schema-and-builder-concept.md`
+- Next: Verify acceptance-criteria coverage, immutable versioning/default-`draft` behavior, guardrail consistency, and lane-isolation expectations.
+
+## 2026-05-25 12:31 local - State change
+
+- Task: STORY-050
+- From: QA_IN_PROGRESS
+- To: READY_FOR_PO
+- Role: qa
+- Reason: QA verification passed with documentation inspection, routing checks, file diagnostics, and no open defects.
+- Evidence: `df/artifacts/STORY-050/qa-report.md`; `df/artifacts/STORY-050/handoffs.md`; `date "+%Y-%m-%d %H:%M local"`; `git --no-pager status --short --branch`; `get_errors` on the `STORY-050` artifact files plus `df/backlog/architecture-direction.md`, `df/runtime/board.md`, and `df/runtime/decisions.md`
+- Next: `po` should review the QA-approved country-template schema concept and decide acceptance.
+
+## 2026-05-25 12:31 local - qa - STORY-050
+
+- State: READY_FOR_QA → QA_IN_PROGRESS → READY_FOR_PO
+- Action: Independently reviewed the `STORY-050` documentation package, confirmed all three acceptance criteria, verified immutable version preservation and default-`draft` lifecycle behavior, checked that the builder concept stays generic and consistent with the no-country-specific-code guardrail, confirmed the task correctly remained outside all implementation/design/data subdashboards, found no defects, and approved the story for PO review.
+- Evidence: `df/artifacts/STORY-050/qa-report.md`; `df/artifacts/STORY-050/task.md`; `df/artifacts/STORY-050/solution-design.md`; `df/artifacts/STORY-050/country-template-schema-and-builder-concept.md`; `df/artifacts/STORY-050/decision-019-country-template-schema-and-builder.md`; `df/artifacts/STORY-050/handoffs.md`; `df/backlog/architecture-direction.md`; `df/runtime/board.md`; `df/runtime/decisions.md`
+- Result: PASS
+- Next: New session required. `po` should perform product review of `STORY-050` and accept or reject the documentation-only architecture direction.
+
+## 2026-05-25 12:34 local - State change
+
+- Task: STORY-050
+- From: READY_FOR_PO
+- To: PO_REVIEW
+- Role: po
+- Reason: Started PO validation of the QA-approved documentation-only country-template schema concept against the task acceptance criteria, QA report, and shared architecture updates.
+- Evidence: `df/artifacts/STORY-050/task.md`; `df/artifacts/STORY-050/qa-report.md`; `df/artifacts/STORY-050/handoffs.md`; `df/artifacts/STORY-050/solution-design.md`; `df/artifacts/STORY-050/country-template-schema-and-builder-concept.md`
+- Next: Independently review the architecture package and decide acceptance or rejection.
+
+## 2026-05-25 12:34 local - State change
+
+- Task: STORY-050
+- From: PO_REVIEW
+- To: DONE
+- Role: po
+- Reason: PO accepted the documentation-only country-template schema concept after independent product validation confirmed all acceptance criteria, documented the non-UI evidence path, and found the contract sufficient to unblock future country-template work.
+- Evidence: `df/artifacts/STORY-050/po-review.md`; `df/artifacts/STORY-050/qa-report.md`; `df/artifacts/STORY-050/task.md`; `date "+%Y-%m-%d %H:%M local"`; `ls -1 df/artifacts/STORY-050`
+- Next: New session required. The factory/`sa` should inspect the runtime board and select the next highest-priority actionable task.
+
+## 2026-05-25 12:34 local - po - STORY-050
+
+- State: READY_FOR_PO → PO_REVIEW → DONE
+- Action: Independently reviewed the QA-approved `STORY-050` architecture package, confirmed that screenshots are not applicable because the story has no UI deliverable, validated the required schema dimensions, immutable versioning, and default-`draft` lifecycle behavior against the product intent, accepted the limited open implementation risks as non-blocking for this story, and approved the task as product-complete.
+- Evidence: `df/artifacts/STORY-050/po-review.md`; `df/artifacts/STORY-050/qa-report.md`; `df/artifacts/STORY-050/solution-design.md`; `df/artifacts/STORY-050/country-template-schema-and-builder-concept.md`; `df/artifacts/STORY-050/decision-019-country-template-schema-and-builder.md`; `df/backlog/architecture-direction.md`; `date "+%Y-%m-%d %H:%M local"`; `ls -1 df/artifacts/STORY-050`
+- Result: PASS
+- Next: New session required. Factory/`sa` should select the next actionable task from the runtime boards.
+

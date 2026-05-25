@@ -108,5 +108,17 @@
   - Related task: `STORY-081`
   - Record: `df/artifacts/STORY-081/decision-018-phase-1-rbac-foundation.md`
 
+- `DECISION-019` - Country templates use a generic manifest-plus-sections schema and builder concept with immutable version history, explicit approval status, source traceability, and no country-specific framework code.
+  - Date: 2026-05-25
+  - Status: Accepted
+  - Related task: `STORY-050`
+  - Record: `df/artifacts/STORY-050/decision-019-country-template-schema-and-builder.md`
+
+- `DECISION-020` - Framework updates use a generic release-package contract with manifest, release notes, migration references, compatibility metadata, rollback guidance, and a manifest/rule-based compatibility checker that emits structured `PASS` / `WARN` / `FAIL` outcomes.
+  - Date: 2026-05-25
+  - Status: Accepted
+  - Related task: `STORY-040`
+  - Record: `df/artifacts/STORY-040/decision-020-release-package-format-and-compatibility-checker.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 

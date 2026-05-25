@@ -527,6 +527,28 @@ Acceptance criteria:
 
 ---
 
+### STORY-094 — Implement grade/year-based student themes
+
+Type: Story
+Owner role: Dev
+Priority: Medium
+Phase: 3
+Epic: EPIC-09
+Status: Draft
+Dependencies: STORY-014, STORY-030, STORY-090, STORY-180
+
+Description:
+Allow the student-facing application to apply different designer-approved visual themes based on the student's school grade/year level or configured grade band, so younger and older students can receive age-appropriate styling without changing permissions, data visibility, or country-specific code.
+
+Acceptance criteria:
+- Given a student assigned to grade/year 3, when they log in, then the student UI applies the theme configured for grade/year 3 or its configured grade band
+- Given a student assigned to grade/year 4, when they log in, then the student UI applies the theme configured for grade/year 4 or its configured grade band, and it may differ from the grade/year 3 theme
+- Given no grade/year-specific theme is configured, when a student logs in, then a default student theme is applied without breaking navigation, readability, or accessibility
+- Given a theme mapping is configured, when reviewed, then theme selection is driven by generic configuration/data and reusable design assets rather than country-specific code branches
+- Given a student's theme is applied, when their session is used, then the change affects visual presentation only and does not alter role permissions, available features, or student-data visibility rules
+
+---
+
 ## EPIC-12 — Meal and Catering Management
 
 ### STORY-120 — Implement institution-level catering configuration

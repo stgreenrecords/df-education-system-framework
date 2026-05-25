@@ -14,7 +14,7 @@ P0
 
 ## Current state
 
-READY_FOR_PO
+DONE
 
 ## Business goal
 
@@ -80,4 +80,5 @@ Complete the next missing MVP security baseline after authentication by introduc
 | 2026-05-24 23:25 local | backend-dev | READY_FOR_DEV -> DEV_IN_PROGRESS | Started backend implementation after reviewing the SA design/handoff, runtime lane queue, and current `STORY-080` auth/security/test seams. The implementation will stay tightly scoped to tenant-scoped role assignments, generic scope-aware authorization checks, representative proof endpoints, and required runtime/artifact updates. |
 | 2026-05-24 23:32 local | backend-dev | DEV_IN_PROGRESS -> READY_FOR_QA | Completed the backend-only RBAC implementation by adding migration `V10`, tenant-scoped predefined role assignments, server-side principal role enrichment, generic scope-path authorization evaluation, bootstrap country-admin reconciliation, minimal role-assignment APIs, representative institution/student authorization-proof endpoints, audit convergence for role assignments, and focused plus full backend verification. |
 | 2026-05-24 23:40 local | qa | READY_FOR_QA -> QA_IN_PROGRESS -> READY_FOR_PO | Independently reran the focused RBAC integration suite and full backend reactor verification, inspected migration `V10` plus the role-enrichment and authorization services, confirmed all four acceptance criteria, `/api-docs` exposure, lane-artifact boundaries, and backend-only generic scope behavior, and passed the story to `po`. |
+| 2026-05-25 12:05 local | po | READY_FOR_PO -> PO_REVIEW -> DONE | Independently reran the focused RBAC integration suite on macOS using the runnable backend integration path, traced the teacher/institution-admin/parent authorization proof routes in `EducationSystemApplicationIT`, confirmed the representative backend-only evidence path is sufficient for this non-UI Phase 1 story, and accepted `STORY-081`. |
 

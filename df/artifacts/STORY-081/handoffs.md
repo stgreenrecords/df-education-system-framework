@@ -135,3 +135,38 @@
 - Validate that the predefined-role behavior and scope-boundary outcomes match the product intent for teacher, institution-admin, and parent scenarios.
 - Accept the story if the backend-only RBAC foundation and representative proof routes satisfy the story intent; reject it if broader product evidence is required before downstream stories build on this foundation.
 
+## po -> factory
+
+- Timestamp: 2026-05-25 12:05 local
+- Task: STORY-081
+- From state: PO_REVIEW
+- To state: DONE
+- Lane: backend-dev
+- Summary: PO accepted `STORY-081` after independently rerunning the focused backend RBAC integration suite on macOS, confirming the representative backend-only/non-UI evidence path, and validating that the predefined-role and scope-boundary outcomes satisfy the MVP RBAC story intent without pulling in deferred MFA, UI, or country-specific scope.
+
+## Evidence
+
+- `df/artifacts/STORY-081/po-review.md`
+- `df/artifacts/STORY-081/qa-report.md`
+- `df/artifacts/STORY-081/task.md`
+- `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+- `backend/platform-core/src/main/resources/db/migration/V10__create_identity_role_assignment_table.sql`
+
+## Tests/checks
+
+| Check | Command/source | Result | Notes |
+|---|---|---|---|
+| Independent PO-focused RBAC verification | `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify | cat` | PASS | `EducationSystemApplicationIT` passed `40/40`, covering migration `V10`, bootstrap country-admin reconciliation, teacher/institution-admin/parent scope boundaries, audit evidence, and `/api-docs` exposure |
+| Acceptance criteria trace review | `df/artifacts/STORY-081/solution-design.md`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `df/artifacts/STORY-081/qa-report.md` | PASS | PO confirmed all four acceptance criteria map to executable product evidence |
+| Screenshot applicability review | `df/artifacts/STORY-081/po-review.md` | PASS | Story is backend-only, so screenshots are not applicable and alternative evidence is documented |
+
+## Known risks
+
+- Representative authorization-proof endpoints remain temporary backend-only evidence routes until later domain stories provide richer real resources.
+- Non-blocking startup/test warnings remained visible during PO validation, but no impact on the RBAC product outcome was observed.
+- The local macOS workstation required `sh ./mvnw` because `mvnw` was not executable; this affected only invocation style, not application behavior.
+
+## Next role instructions
+
+- Start a new session and let the factory/`sa` inspect the runtime boards and select the next highest-priority actionable task.
+

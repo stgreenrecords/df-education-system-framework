@@ -251,6 +251,24 @@ The same application image and source code should run across providers. The IaC 
 - The framework must not contain country-specific code paths, schema variants, module variants, or API variants for individual countries.
 - If a country requirement cannot be expressed through generic configuration/data modeling, it must trigger an architecture review rather than a country-specific implementation.
 
+## Country template schema concept
+
+- A country template should be treated as an immutable, versioned, evidence-backed data package rather than code.
+- Every template version should include a manifest with at least: template id, country code, version, status, schema/builder version, and a source-map reference.
+- Required content sections should cover: education stages, institution types, grade scales, required subjects, academic calendar rules, semester/term structure, attendance rules, teacher roles, legal/privacy constraints, and evidence links.
+- Optional extension sections such as curriculum references, official exams, language configuration, and report/document formats should remain data-only and reuse the same generic packaging rules.
+- New or changed template versions should default to `draft`; approval should be explicit, and prior versions must remain preserved rather than overwritten.
+- The future template builder should assemble and validate these packages generically, including required-section checks, source-traceability checks, and enforcement of the no-country-specific-code rule.
+
+## Release package and compatibility-checker concept
+
+- Framework updates should be distributed as immutable release packages rather than direct vendor-controlled deployments.
+- Every release package should include a manifest, release notes, migration-script references, compatibility metadata, rollback guidance, and integrity-verification data.
+- Compatibility metadata should describe supported upgrade paths, required configuration/template schema markers, breaking changes, required manual actions, migration availability, and rollback limitations.
+- The first compatibility checker should evaluate manifest/rule metadata against the country's current framework/configuration/template state and emit a structured `PASS` / `WARN` / `FAIL` report.
+- Breaking-change reports should identify affected configuration or country-template areas and suggest migration steps before country approval.
+- Release packages and compatibility rules must remain provider-neutral and country-neutral; unsupported cases trigger architecture review rather than country-specific package variants.
+
 ## Integration architecture
 
 - REST APIs as primary integration surface
