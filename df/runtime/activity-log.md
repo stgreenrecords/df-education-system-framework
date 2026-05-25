@@ -2318,3 +2318,148 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Result: PASS — backend lane status confirmed; no actionable backend implementation task is currently available
 - Next: New session required. `po` should complete `STORY-081` product review; after that, start a new session for `sa` to route the next task or for `backend-dev` if the story is returned for rework.
 - Risks/blockers: Existing untracked build outputs are present under `backend/*/target/`; left untouched because they predate this session and are outside the requested work.
+
+## 2026-05-25 14:02 local - State change
+
+- Task: STORY-031
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: backend-dev
+- Reason: Started the backend implementation/finalization pass for the QA-ready `STORY-031` design package after reviewing the routed task artifacts, existing configuration/audit seams in `backend/platform-core`, and repository status.
+- Evidence: `df/artifacts/STORY-031/task.md`; `df/artifacts/STORY-031/solution-design.md`; `df/artifacts/STORY-031/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `git --no-pager status --short --branch`
+- Next: Complete the backend-only implementation, run focused plus broader verification, and prepare the QA handoff package.
+
+## 2026-05-25 14:10 local - backend-dev - STORY-031
+
+- State: DEV_IN_PROGRESS → READY_FOR_QA
+- Action: Completed the backend-only implementation for `STORY-031` in `backend/platform-core` by adding dry-run configuration validation, auditable inheritance-break request persistence, country-scope compatibility reporting for institution overrides, migration `V11`, final controller cleanup, and QA handoff artifacts under `df/artifacts/STORY-031/backend/`.
+- Evidence: `df/artifacts/STORY-031/backend/dev-notes.md`; `df/artifacts/STORY-031/backend/handoff-to-qa.md`; `df/artifacts/STORY-031/task.md`; `df/artifacts/STORY-031/handoffs.md`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/configuration/ConfigurationController.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/configuration/ConfigurationService.java`; `backend/platform-core/src/main/resources/db/migration/V11__create_configuration_inheritance_break_request_table.sql`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Result: PASS
+- Next: `qa` should independently verify the new validation, inheritance-break, and compatibility-report behavior, rerun the focused integration suite, and confirm `/api-docs` exposure plus migration ordering.
+- Risks/blockers: `mvnw` is not executable in this workspace, so backend verification used `sh ./mvnw`; Maven/Jansi, Spring Boot generated-password, SpringDoc, Mockito, and Testcontainers credential-helper warnings were observed during successful verification but were non-blocking.
+
+## 2026-05-25 14:10 local - State change
+
+- Task: STORY-031
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: backend-dev
+- Reason: Backend implementation, verification, runtime updates, and QA handoff artifacts are complete.
+- Evidence: `df/artifacts/STORY-031/backend/dev-notes.md`; `df/artifacts/STORY-031/backend/handoff-to-qa.md`; `df/artifacts/STORY-031/task.md`; `df/artifacts/STORY-031/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: `qa` begins independent verification of `STORY-031`.
+
+## 2026-05-25 14:16 local - qa - STORY-031
+
+- State: READY_FOR_QA → QA_IN_PROGRESS
+- Action: Reviewed the QA inputs for `STORY-031`, including the task acceptance criteria, solution design, backend handoff package, runtime boards, decision/risk context, repository status, and the new `ConfigurationController`, `ConfigurationService`, `V11` migration, and focused integration-test coverage before starting independent verification.
+- Evidence: `df/artifacts/STORY-031/task.md`; `df/artifacts/STORY-031/solution-design.md`; `df/artifacts/STORY-031/handoffs.md`; `df/artifacts/STORY-031/backend/dev-notes.md`; `df/artifacts/STORY-031/backend/handoff-to-qa.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/decisions.md`; `df/runtime/risks.md`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/configuration/ConfigurationController.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/configuration/ConfigurationService.java`; `backend/platform-core/src/main/resources/db/migration/V11__create_configuration_inheritance_break_request_table.sql`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `git --no-pager status --short --branch`
+- Result: PASS — QA inputs are sufficient and independent verification is in progress
+- Next: Run focused static/error checks and integration verification, then decide whether `STORY-031` advances to `READY_FOR_PO` or returns to development.
+- Risks/blockers: Repository already contains uncommitted `STORY-031` implementation/session files from the previous role; QA will verify them in place without altering unrelated user work.
+
+## 2026-05-25 14:16 local - State change
+
+- Task: STORY-031
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: QA accepted the handoff and started independent verification of the STORY-031 backend-only implementation.
+- Evidence: `df/artifacts/STORY-031/backend/dev-notes.md`; `df/artifacts/STORY-031/backend/handoff-to-qa.md`; `df/artifacts/STORY-031/task.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Execute focused verification for the acceptance criteria, migration `V11`, audit convergence, and `/api-docs` exposure.
+
+## 2026-05-25 14:17 local - qa - STORY-031
+
+- State: QA_IN_PROGRESS → READY_FOR_PO
+- Action: Completed independent QA verification for `STORY-031` by running file-level error checks, rerunning the focused `EducationSystemApplicationIT` suite, rerunning full backend `clean verify`, and inspecting the configuration controller/service plus Flyway migration `V11` for audit convergence, generic scope-path behavior, and OpenAPI exposure.
+- Evidence: `df/artifacts/STORY-031/qa-report.md`; `df/artifacts/STORY-031/handoffs.md`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/configuration/ConfigurationController.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/configuration/ConfigurationService.java`; `backend/platform-core/src/main/resources/db/migration/V11__create_configuration_inheritance_break_request_table.sql`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `get_errors` on the changed configuration files; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml clean verify`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Result: PASS
+- Next: `po` should perform product acceptance for the backend-only/non-UI story using `df/artifacts/STORY-031/qa-report.md` and the recorded handoff evidence.
+- Risks/blockers: Non-blocking Jansi/native-access, Spring Boot generated-password, SpringDoc, Mockito-agent, and Testcontainers credential-helper warnings were observed during successful verification; compatibility reporting remains intentionally limited to projected `COUNTRY`-scope updates in this story.
+
+## 2026-05-25 14:17 local - State change
+
+- Task: STORY-031
+- From: QA_IN_PROGRESS
+- To: READY_FOR_PO
+- Role: qa
+- Reason: Independent QA verification passed with no blocking defects, so the story is ready for product-owner review.
+- Evidence: `df/artifacts/STORY-031/qa-report.md`; `df/artifacts/STORY-031/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: `po` reviews the QA report, confirms the backend-only acceptance path, and either accepts or rejects `STORY-031`.
+
+## 2026-05-25 14:21 local - po - STORY-031
+
+- State: READY_FOR_PO → PO_REVIEW
+- Action: Reviewed the runtime board, task acceptance criteria, QA report, backend lane handoff evidence, known risks, and current workspace status before starting PO validation for the backend-only `STORY-031` outcome.
+- Evidence: `df/runtime/board.md`; `df/artifacts/STORY-031/task.md`; `df/artifacts/STORY-031/qa-report.md`; `df/artifacts/STORY-031/backend/handoff-to-qa.md`; `df/runtime/backend-dev-board.md`; `df/runtime/risks.md`; `git --no-pager status --short --branch`
+- Result: PASS — PO review inputs confirmed and product validation is in progress
+- Next: Run the backend-only product validation path, compare the actual behavior/evidence with the intended product outcome, and record acceptance or rejection in `df/artifacts/STORY-031/po-review.md`.
+- Risks/blockers: Screenshots are likely not applicable because this story is backend-only/non-UI unless the review uncovers a user-visible surface that requires capture.
+
+## 2026-05-25 14:21 local - State change
+
+- Task: STORY-031
+- From: READY_FOR_PO
+- To: PO_REVIEW
+- Role: po
+- Reason: PO accepted the QA handoff and started product validation for the backend-only configuration follow-up story.
+- Evidence: `df/artifacts/STORY-031/qa-report.md`; `df/artifacts/STORY-031/task.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Complete PO acceptance testing and decide whether the story is accepted or rejected.
+
+## 2026-05-25 14:22 local - po - STORY-031
+
+- State: PO_REVIEW → DONE
+- Action: Completed product review for `STORY-031` by rerunning the focused backend-only `EducationSystemApplicationIT` validation path, comparing the exercised behavior with the story intent and QA evidence, documenting the non-UI acceptance rationale, and accepting the task.
+- Evidence: `df/artifacts/STORY-031/po-review.md`; `df/artifacts/STORY-031/qa-report.md`; `df/artifacts/STORY-031/handoffs.md`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Result: PASS
+- Next: New session required. `sa` should inspect the runtime board and select the next highest-priority actionable task.
+- Risks/blockers: Screenshots are not applicable because this story is backend-only/non-UI. Limited `COUNTRY`-scope compatibility reporting and the documented non-blocking local verification warnings were accepted as within the approved story scope.
+
+## 2026-05-25 14:22 local - State change
+
+- Task: STORY-031
+- From: PO_REVIEW
+- To: DONE
+- Role: po
+- Reason: Product review passed; the backend-only implementation satisfies the intended business outcome and QA-approved acceptance criteria.
+- Evidence: `df/artifacts/STORY-031/po-review.md`; `df/artifacts/STORY-031/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Start a new session for `sa` to choose the next actionable task.
+
+## 2026-05-25 14:22 local - sa - STORY-082
+
+- State: OPEN → READY_FOR_DEV
+- Action: Reviewed the live runtime/lane boards and remaining Phase 1 backlog, selected `STORY-082` as the next strongest actionable security follow-up after the accepted auth/RBAC foundation, documented the backend-only administrator-MFA architecture package, recorded `DECISION-022`, updated the shared architecture direction and runtime risk register, and routed the story to `backend-dev`.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/solution-design.md`; `df/artifacts/STORY-082/decision-022-phase-1-admin-mfa-foundation.md`; `df/artifacts/STORY-082/handoffs.md`; `df/backlog/user-stories.md`; `df/backlog/roadmap.md`; `df/backlog/mvp-definition.md`; `df/backlog/final-initial-prompt.md`; `df/backlog/architecture-direction.md`; `df/artifacts/STORY-080/solution-design.md`; `df/artifacts/STORY-081/solution-design.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationController.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityRoleAssignmentService.java`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/decisions.md`; `df/runtime/risks.md`
+- Result: PASS
+- Next: New session required. `backend-dev` should implement `STORY-082` using the routed TOTP challenge-flow design and focused backend integration coverage.
+- Risks/blockers: `RISK-031` added for MFA secret handling and pre-MFA challenge safety; no immediate blockers were identified for backend implementation.
+
+## 2026-05-25 14:22 local - State change
+
+- Task: STORY-082
+- From: OPEN
+- To: NEEDS_ARCHITECTURE
+- Role: sa
+- Reason: Selected `STORY-082` as the next actionable Phase 1 security story after `STORY-031` acceptance because administrator MFA is explicitly required by the backlog/MVP and now cleanly extends the accepted auth/RBAC foundation.
+- Evidence: `df/backlog/user-stories.md`; `df/backlog/mvp-definition.md`; `df/backlog/roadmap.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Complete the MFA solution design and lane routing.
+
+## 2026-05-25 14:22 local - State change
+
+- Task: STORY-082
+- From: NEEDS_ARCHITECTURE
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: Architecture is required because the story changes authentication contracts, introduces security-sensitive persistence, adds new backend endpoints, and must preserve the accepted auth/RBAC seams.
+- Evidence: `df/artifacts/STORY-080/solution-design.md`; `df/artifacts/STORY-081/solution-design.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationController.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`
+- Next: Finish the backend-only MFA design, record the decision, and route the story.
+
+## 2026-05-25 14:22 local - State change
+
+- Task: STORY-082
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_DEV
+- Role: sa
+- Reason: Completed the backend-only administrator-MFA design, recorded `DECISION-022`, updated architecture/runtime evidence, and routed implementation to the `backend-dev` lane.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/solution-design.md`; `df/artifacts/STORY-082/decision-022-phase-1-admin-mfa-foundation.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/decisions.md`; `df/runtime/risks.md`
+- Next: `backend-dev` begins implementation of `STORY-082`.
+

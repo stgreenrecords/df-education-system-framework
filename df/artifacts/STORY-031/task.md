@@ -14,7 +14,7 @@ P1
 
 ## Current state
 
-READY_FOR_DEV
+DONE
 
 ## Business goal
 
@@ -55,6 +55,12 @@ Build the next safe layer on top of the accepted configuration foundation so con
 - PR: n/a
 - Design: `df/artifacts/STORY-031/solution-design.md`
 
+## Implementation lane
+
+- Lane: `backend-dev`
+- Subdashboard: `df/runtime/backend-dev-board.md`
+- Artifact folder for implementation notes: `df/artifacts/STORY-031/backend/`
+
 ## Role history
 
 | Timestamp | Role | State | Summary |
@@ -62,4 +68,10 @@ Build the next safe layer on top of the accepted configuration foundation so con
 | 2026-05-25 12:56 local | sa | OPEN -> NEEDS_ARCHITECTURE | Selected `STORY-031` as the next highest-priority actionable task because it is the strongest remaining Phase 1 follow-up on the accepted configuration foundation and directly advances compatibility-reporting and inheritance-break workflows needed by later release and country-template work. |
 | 2026-05-25 12:56 local | sa | NEEDS_ARCHITECTURE -> ARCHITECTURE_IN_PROGRESS | Started architecture because the story adds validation/reporting APIs, audit-traced inheritance-break persistence, and cross-scope impact reporting on top of the shared configuration engine. |
 | 2026-05-25 12:56 local | sa | ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV | Completed the backend-only architecture, recorded `DECISION-021`, created the task package, and routed implementation to `backend-dev`. |
+| 2026-05-25 14:02 local | backend-dev | READY_FOR_DEV -> DEV_IN_PROGRESS | Started backend implementation/finalization after reviewing the SA design and existing `backend/platform-core` configuration, audit, tenant, and integration-test seams. The work remained backend-only and framework-generic. |
+| 2026-05-25 14:10 local | backend-dev | DEV_IN_PROGRESS -> READY_FOR_QA | Completed the backend implementation by adding structured validation responses, inheritance-break request persistence plus audit convergence, country-scope compatibility reporting for institution overrides, `V11` migration coverage, and focused plus full backend verification. |
+| 2026-05-25 14:16 local | qa | READY_FOR_QA -> QA_IN_PROGRESS | Began independent QA verification by reviewing the backend handoff package, inspecting the new controller/service/migration/test seams, and preparing focused regression checks for the STORY-031 acceptance criteria. |
+| 2026-05-25 14:17 local | qa | QA_IN_PROGRESS -> READY_FOR_PO | Completed independent QA verification with passing focused `EducationSystemApplicationIT` and full backend `clean verify` runs, confirmed migration `V11`, audit convergence, `/api-docs` exposure, and generic scope-path behavior, and found no blocking defects. |
+| 2026-05-25 14:21 local | po | READY_FOR_PO -> PO_REVIEW | Began product review by confirming the QA pass package, backend lane evidence, and the backend-only/non-UI validation path for `STORY-031`. |
+| 2026-05-25 14:22 local | po | PO_REVIEW -> DONE | Accepted the story after rerunning the focused backend-only product-validation path, confirming the non-UI evidence model, and validating that the new configuration validation, inheritance-break request recording, and institution-impact reporting behavior satisfies the intended product outcome. |
 

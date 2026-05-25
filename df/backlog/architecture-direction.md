@@ -199,6 +199,8 @@ The same application image and source code should run across providers. The IaC 
 - Phase 1 should start with tenant-scoped local credentials, secure password hashing, and signed bearer-token authentication rather than waiting for full external IdP integration.
 - One deployment-local bootstrap administrator may be created from externalized configuration so additional users can be registered without introducing public self-signup.
 - Full hierarchical RBAC, MFA, external federation, password reset, and broader identity lifecycle workflows remain follow-up stories layered on top of the same authentication foundation.
+- Phase 1 administrator MFA should extend the accepted login contract through a backend-only challenge flow: non-admin users may still receive direct access tokens after password validation, but administrator-role users must complete TOTP enrollment/verification before a standard access token is issued.
+- Phase 1 MFA secret material must stay protected with externalized key configuration and must not create a privileged pre-MFA session during enrollment or verification.
 - Secrets such as bootstrap credentials and token-signing configuration must stay externalized; they must not be committed to source control or baked into portable release artifacts.
 
 ### Phase 1 RBAC foundation

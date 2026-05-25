@@ -126,5 +126,11 @@
   - Related task: `STORY-031`
   - Record: `df/artifacts/STORY-031/decision-021-configuration-validation-and-impact-reporting.md`
 
+- `DECISION-022` - Phase 1 administrator MFA should remain backend-only, use TOTP as the first factor, derive enforcement from the accepted RBAC admin roles, and require a challenge-based step-up flow before administrator access tokens are issued.
+  - Date: 2026-05-25
+  - Status: Accepted
+  - Related task: `STORY-082`
+  - Record: `df/artifacts/STORY-082/decision-022-phase-1-admin-mfa-foundation.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 
