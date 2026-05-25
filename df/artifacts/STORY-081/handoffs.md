@@ -95,3 +95,43 @@
 - Confirm teacher/institution-admin/parent authorization boundaries behave as documented and that role-assignment mutations create audit events.
 - Confirm the new RBAC endpoints appear in `/api-docs` and that the implementation remains backend-only and framework-generic.
 
+## qa -> po
+
+- Timestamp: 2026-05-24 23:40 local
+- Task: STORY-081
+- From state: READY_FOR_QA
+- To state: READY_FOR_PO
+- Role: qa
+- Summary: `qa` independently validated the backend-only RBAC foundation by rerunning the focused RBAC integration suite and the full backend reactor, inspecting migration `V10` plus server-side role enrichment and scope-aware authorization services, and confirming all four acceptance criteria, audit convergence, `/api-docs` exposure, and framework-generic behavior.
+
+## Evidence
+
+- `df/artifacts/STORY-081/qa-report.md`
+- `df/artifacts/STORY-081/task.md`
+- `df/artifacts/STORY-081/backend/dev-notes.md`
+- `df/artifacts/STORY-081/backend/handoff-to-qa.md`
+- `backend/platform-core/src/main/resources/db/migration/V10__create_identity_role_assignment_table.sql`
+- `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticatedPrincipalRoleService.java`
+- `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthorizationService.java`
+- `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`
+- `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+
+## Tests/checks
+
+| Check | Command/source | Result | Notes |
+|---|---|---|---|
+| Focused RBAC integration verification | `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify` | PASS | `40/40` integration tests passed, covering migration `V10`, bootstrap country-admin reconciliation, teacher/institution-admin/parent boundaries, audit evidence, and `/api-docs` exposure |
+| Full backend reactor verification | `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml clean verify` | PASS | Confirms the wider backend reactor remained green after RBAC changes |
+| IDE/static sanity scan | `get_errors` on the changed RBAC files | PASS | No IDE errors found |
+
+## Known risks
+
+- Representative authorization-proof endpoints remain temporary backend-only evidence routes until later domain stories provide richer real resources.
+- Existing non-identity endpoints were intentionally not broadly re-scoped in this story.
+
+## Next role instructions
+
+- Review `df/artifacts/STORY-081/qa-report.md` plus the backend handoff and confirm the representative backend-only evidence path is acceptable for this Phase 1 story.
+- Validate that the predefined-role behavior and scope-boundary outcomes match the product intent for teacher, institution-admin, and parent scenarios.
+- Accept the story if the backend-only RBAC foundation and representative proof routes satisfy the story intent; reject it if broader product evidence is required before downstream stories build on this foundation.
+

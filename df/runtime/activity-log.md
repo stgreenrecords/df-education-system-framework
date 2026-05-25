@@ -2152,3 +2152,31 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Result: PASS
 - Next: New session required. `qa` should validate the RBAC contract and decide whether `STORY-081` advances to `READY_FOR_PO` or returns for backend rework.
 
+## 2026-05-24 23:40 local - State change
+
+- Task: STORY-081
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: Started independent QA verification of the backend-only RBAC foundation after reviewing the task acceptance criteria, backend handoff, changed files, and planned verification scope.
+- Evidence: `df/artifacts/STORY-081/task.md`; `df/artifacts/STORY-081/backend/handoff-to-qa.md`; `df/artifacts/STORY-081/backend/dev-notes.md`; `df/artifacts/STORY-081/handoffs.md`
+- Next: Rerun the focused RBAC integration suite, inspect migration `V10` plus server-side role enrichment, and verify acceptance-criteria coverage.
+
+## 2026-05-24 23:40 local - State change
+
+- Task: STORY-081
+- From: QA_IN_PROGRESS
+- To: READY_FOR_PO
+- Role: qa
+- Reason: QA verification passed with focused and full backend verification evidence, source inspection, and no open defects.
+- Evidence: `df/artifacts/STORY-081/qa-report.md`; `df/artifacts/STORY-081/handoffs.md`; `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml -pl platform-core -am "-Dit.test=EducationSystemApplicationIT" verify`; `Set-Location "C:\Users\Viach\IdeaProjects\DF Education System Framework"; .\mvnw.cmd -f backend\pom.xml clean verify`
+- Next: `po` should review the QA-approved RBAC foundation and decide acceptance.
+
+## 2026-05-24 23:40 local - qa - STORY-081
+
+- State: QA_IN_PROGRESS → READY_FOR_PO
+- Action: Independently reran the focused `EducationSystemApplicationIT` suite and the full backend `clean verify` path, inspected `V10__create_identity_role_assignment_table.sql` plus `AuthenticatedPrincipalRoleService`, `IdentityAuthorizationService`, and `JwtAuthenticationFilter`, confirmed all four RBAC acceptance criteria, verified audit-event coverage and `/api-docs` exposure, and found no defects.
+- Evidence: `df/artifacts/STORY-081/qa-report.md`; `df/artifacts/STORY-081/handoffs.md`; `backend/platform-core/src/main/resources/db/migration/V10__create_identity_role_assignment_table.sql`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticatedPrincipalRoleService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthorizationService.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+- Result: PASS
+- Next: New session required. `po` should perform product review of `STORY-081` and accept or reject the backend-only representative evidence path.
+
