@@ -101,14 +101,14 @@ Use the dedicated run guide for exact prerequisites, environment variables, back
 
 Quick summary:
 
-- Recommended cross-platform launcher: `java RunLocal.java`
-- Optional website startup: `java RunLocal.java --with-website`
+- Recommended cross-platform startup command: `docker compose -f compose.local.yaml up`
+- Recommended compose scope: PostgreSQL + Spring backend + `frontend/website`
 - Backend application entrypoint: `backend/platform-core`
 - Manual backend fallback command: `sh ./mvnw -f backend/platform-core/pom.xml spring-boot:run`
 - Backend health endpoint: `GET /platform/status`
 - OpenAPI endpoint: `GET /api-docs`
-- Website project: `frontend/website` (requires Node.js 20+ and npm)
-- Website proxy default backend URL: `http://127.0.0.1:8080`
+- Website URL from the compose launcher: `http://127.0.0.1:3000`
+- Manual website project path: `frontend/website`
 
 ## Non-Negotiable Factory Principles
 

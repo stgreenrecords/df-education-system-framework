@@ -1,0 +1,67 @@
+services:
+  postgres:
+    image: ${DF_POSTGRES_IMAGE:-postgres:17-alpine}
+    container_name: ${DF_POSTGRES_CONTAINER_NAME:-df-local-postgres}
+    environment:
+      POSTGRES_DB: ${DF_DB_NAME:-education_framework}
+      POSTGRES_USER: ${DF_DB_USER:-education_framework}
+      POSTGRES_PASSWORD: ${DF_DB_PASSWORD:-education_framework}
+    ports:
+      - "${DF_DB_PORT:-55433}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$${POSTGRES_USER}\" -d \"$${POSTGRES_DB}\""]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  backend:
+    image: eclipse-temurin:25-jdk
+    container_name: ${DF_BACKEND_CONTAINER_NAME:-df-local-backend}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    working_dir: /workspace
+    volumes:
+      - .:/workspace
+      - maven-cache:/root/.m2
+    environment:
+      EDU_DB_URL: jdbc:postgresql://postgres:5432/${DF_DB_NAME:-education_framework}
+      EDU_DB_USERNAME: ${DF_DB_USER:-education_framework}
+      EDU_DB_PASSWORD: ${DF_DB_PASSWORD:-education_framework}
+      EDU_AUTH_JWT_SECRET: ${DF_AUTH_JWT_SECRET:-df-local-jwt-secret-0123456789abcdef}
+      EDU_AUTH_MFA_SECRET_ENCRYPTION_KEY: ${DF_AUTH_MFA_SECRET_ENCRYPTION_KEY:-df-local-mfa-secret-0123456789abcdef}
+      EDU_AUTH_BOOTSTRAP_ADMIN_USERNAME: ${DF_BOOTSTRAP_ADMIN_USERNAME:-bootstrap-admin}
+      EDU_AUTH_BOOTSTRAP_ADMIN_PASSWORD: ${DF_BOOTSTRAP_ADMIN_PASSWORD:-BootstrapPassword!123}
+      EDU_AUTH_BOOTSTRAP_ADMIN_DISPLAY_NAME: ${DF_BOOTSTRAP_ADMIN_DISPLAY_NAME:-Bootstrap Administrator}
+    ports:
+      - "${DF_APP_PORT:-8080}:8080"
+    command:
+      - sh
+      - -lc
+      - sh ./mvnw -f backend/pom.xml -pl platform-core -am package -DskipTests && java -jar backend/platform-core/target/platform-core-0.1.0-SNAPSHOT-exec.jar --server.port=8080
+
+  frontend:
+    image: ${DF_NODE_IMAGE:-node:22-bookworm}
+    container_name: ${DF_FRONTEND_CONTAINER_NAME:-df-local-frontend}
+    depends_on:
+      - backend
+    working_dir: /workspace/frontend/website
+    volumes:
+      - .:/workspace
+      - npm-cache:/root/.npm
+      - website-node-modules:/workspace/frontend/website/node_modules
+    environment:
+      EDUCATION_API_BASE_URL: http://backend:8080
+      NEXT_TELEMETRY_DISABLED: "1"
+    ports:
+      - "${DF_WEB_PORT:-3000}:3000"
+    command:
+      - sh
+      - -lc
+      - npm install --no-fund --no-audit && npm run dev -- --hostname 0.0.0.0 --port 3000
+
+volumes:
+  maven-cache:
+  npm-cache:
+  website-node-modules:
+

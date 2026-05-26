@@ -2785,3 +2785,151 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/solution-design.md`; `df/artifacts/TASK-009/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
 - Next: `devops` should implement the launcher and validate the local startup flow.
 
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: devops
+- Reason: DevOps started implementation, reviewed the runtime/startup assets, and is correcting the earlier launcher direction after explicit user feedback that the deliverable must be a terminal-first startup file rather than a Java main-class wrapper.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `devops/container/platform-core/Containerfile`; `docs/run-application.md`; `frontend/website/package.json`
+- Next: Replace the earlier draft with a single terminal-driven cross-platform startup file, validate it locally, and prepare the QA handoff.
+
+## 2026-05-26 local - devops - TASK-009
+
+- State: DEV_IN_PROGRESS
+- Action: Reviewed the live task, solution design, runtime boards, repository status, container/runtime assets, and cross-platform runtime options. Confirmed the Maven wrapper can run inside a plain Java 25 container and selected a stronger terminal-first implementation approach: one Docker Compose file that starts PostgreSQL plus the Spring backend from terminal commands, avoiding the need for a host-side Java launcher wrapper.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/solution-design.md`; `df/artifacts/TASK-009/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `devops/container/platform-core/Containerfile`; `backend/platform-core/src/main/resources/application.properties`; `frontend/website/package.json`; `git --no-pager status --short`; `command -v python3`; `command -v pwsh`; `command -v bash`; `docker run --rm eclipse-temurin:25-jdk sh -lc 'sh ./mvnw -version'`
+- Result: PASS
+- Next: Implement the single-file terminal startup flow, validate it locally, and update the run documentation plus DevOps lane evidence.
+
+## 2026-05-26 local - devops - TASK-009
+
+- State: DEV_IN_PROGRESS → READY_FOR_QA
+- Action: Replaced the discarded `RunLocal.java` draft with one terminal-first cross-platform startup file, `compose.local.yaml`, for Spring + PostgreSQL. Corrected the backend container command after discovering that `platform-core` alone could not resolve sibling reactor modules inside a clean container, changed the compose backend service to package the backend reactor first and then run the generated exec jar, updated `README.md` plus `docs/run-application.md` to recommend the compose path, validated compose startup/health/OpenAPI/login/cleanup locally, and prepared the DevOps QA handoff.
+- Evidence: `compose.local.yaml`; `README.md`; `docs/run-application.md`; `df/artifacts/TASK-009/devops/dev-notes.md`; `df/artifacts/TASK-009/devops/handoff-to-qa.md`; `df/artifacts/TASK-009/task.md`; `docker compose version`; `docker run --rm -v "$PWD:/workspace" -w /workspace eclipse-temurin:25-jdk sh -lc 'sh ./mvnw -version'`; `DF_DB_PORT=55437 DF_APP_PORT=18090 DF_POSTGRES_CONTAINER_NAME=df-local-postgres-task009 DF_BACKEND_CONTAINER_NAME=df-local-backend-task009 docker compose -f compose.local.yaml up -d`; `curl http://127.0.0.1:18090/platform/status`; `curl http://127.0.0.1:18090/api-docs`; `curl -X POST http://127.0.0.1:18090/api/v1/identity/auth/login -H 'Content-Type: application/json' -d '{"username":"bootstrap-admin","password":"BootstrapPassword!123"}'`; `DF_DB_PORT=55437 DF_APP_PORT=18090 DF_POSTGRES_CONTAINER_NAME=df-local-postgres-task009 DF_BACKEND_CONTAINER_NAME=df-local-backend-task009 docker compose -f compose.local.yaml down -v`
+- Result: PASS
+- Next: New session required. `qa` should independently validate the compose-based terminal startup flow and decide whether `TASK-009` advances to `READY_FOR_PO` or returns for rework.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: devops
+- Reason: DevOps implementation and local validation of the single-file terminal startup flow are complete.
+- Evidence: `df/artifacts/TASK-009/devops/dev-notes.md`; `df/artifacts/TASK-009/devops/handoff-to-qa.md`; `df/artifacts/TASK-009/task.md`; `compose.local.yaml`; `README.md`; `docs/run-application.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `qa` should independently validate the compose startup path, health checks, and cleanup behavior.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: READY_FOR_QA
+- To: READY_FOR_PO
+- Role: qa
+- Reason: Independent QA verification passed for the compose-based single-file launcher. The compose path successfully started PostgreSQL plus the Spring backend, cleanup worked, and the missing frontend process was confirmed to be intentional/documented rather than a defect in the current task scope.
+- Evidence: `df/artifacts/TASK-009/qa-report.md`; `df/artifacts/TASK-009/handoffs.md`; `compose.local.yaml`; `README.md`; `docs/run-application.md`; `docker compose -f compose.local.yaml config --services`; `DF_DB_PORT=55439 DF_APP_PORT=18091 DF_POSTGRES_CONTAINER_NAME=df-local-postgres-task009-qa DF_BACKEND_CONTAINER_NAME=df-local-backend-task009-qa docker compose -f compose.local.yaml up -d`; `curl http://127.0.0.1:18091/platform/status`; `curl -o /dev/null -w '%{http_code}' http://127.0.0.1:18091/api-docs`; `DF_DB_PORT=55439 DF_APP_PORT=18091 DF_POSTGRES_CONTAINER_NAME=df-local-postgres-task009-qa DF_BACKEND_CONTAINER_NAME=df-local-backend-task009-qa docker compose -f compose.local.yaml down -v`
+- Next: `po` reviews TASK-009, confirms the accepted launcher scope and documentation accuracy, and accepts or rejects with explicit scope feedback.
+
+## 2026-05-26 local - qa - TASK-009
+
+- State: READY_FOR_PO
+- Action: Reviewed the task acceptance criteria and DevOps handoff, re-ran the compose launcher with isolated ports/container names, inspected the declared compose services and backend logs directly, verified live `/platform/status` and `/api-docs`, confirmed cleanup, and checked the frontend expectation reported by the user. QA determined that the frontend not starting is expected because `TASK-009` intentionally scopes the compose launcher to PostgreSQL + Spring backend while website startup remains a separate manual path.
+- Evidence: `df/artifacts/TASK-009/qa-report.md`; `df/artifacts/TASK-009/devops/handoff-to-qa.md`; `df/artifacts/TASK-009/handoffs.md`; `compose.local.yaml`; `README.md`; `docs/run-application.md`; `docker compose -f compose.local.yaml config --services`; `docker compose -f compose.local.yaml logs --tail=120 backend`; `curl -o /dev/null -w '%{http_code}' http://127.0.0.1:3000`
+- Result: PASS
+- Next: New session required. `po` should review `TASK-009` and either accept the backend-focused compose launcher or reject it only if the product scope now explicitly requires frontend startup in the same command.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: READY_FOR_PO
+- To: PO_REVIEW
+- Role: po
+- Reason: Started PO review of the QA-approved single-file launcher after explicit human feedback questioned why `docker compose -f compose.local.yaml up` does not start the frontend.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/qa-report.md`; `df/artifacts/TASK-009/devops/dev-notes.md`; `df/artifacts/TASK-009/handoffs.md`; `compose.local.yaml`; `docs/run-application.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Compare the delivered compose scope with the user's stated product expectation and decide acceptance or rejection.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: PO_REVIEW
+- To: PO_REJECTED
+- Role: po
+- Reason: Explicit human product feedback confirmed that the one-command startup experience is expected to start the website frontend too, but the delivered compose file starts PostgreSQL plus the Spring backend only.
+- Evidence: `df/artifacts/TASK-009/po-review.md`; `compose.local.yaml`; `docs/run-application.md`; `df/artifacts/TASK-009/qa-report.md`
+- Next: Return the task to the DevOps lane for rework with the frontend-startup requirement made explicit.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: PO_REJECTED
+- To: RETURNED_TO_DEV
+- Role: po
+- Reason: Rework is required in the DevOps-owned launcher so the single compose command includes the website frontend, or a concrete blocker must be documented for SA coordination.
+- Evidence: `df/artifacts/TASK-009/po-review.md`; `df/artifacts/TASK-009/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `devops` should implement the frontend-startup rework or document the blocker and hand off for SA coordination.
+
+## 2026-05-26 local - po - TASK-009
+
+- State: PO_REVIEW -> RETURNED_TO_DEV
+- Action: Reviewed the QA-approved single-file launcher and compared it against the explicit human product feedback in this session. Confirmed that `compose.local.yaml` starts only `postgres` and `backend`, while the documentation also keeps website startup separate/manual. Rejected the task because the user expectation is now that the one-command startup flow should include the website frontend too.
+- Evidence: `df/artifacts/TASK-009/po-review.md`; `df/artifacts/TASK-009/qa-report.md`; `compose.local.yaml`; `docs/run-application.md`; `df/artifacts/TASK-009/handoffs.md`
+- Result: FAIL — returned to DevOps for rework
+- Next: New session required. `devops` should rework `TASK-009` so the single launcher starts the website frontend too, or document a concrete blocker for SA coordination.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: RETURNED_TO_DEV
+- To: DEV_IN_PROGRESS
+- Role: devops
+- Reason: Started DevOps rework after PO rejection by reviewing the compose/docs/frontend runtime inputs and selecting a containerized `frontend/website` service so the same compose command can start database, backend, and website together without host Node.js/npm.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/handoffs.md`; `df/artifacts/TASK-009/devops/dev-notes.md`; `compose.local.yaml`; `frontend/website/package.json`; `frontend/website/package-lock.json`; `frontend/website/lib/backend.ts`; `docker run --rm node:22-bookworm sh -lc 'node --version && npm --version'`
+- Next: Extend `compose.local.yaml`, update runtime docs, rerun the full stack, and prepare the QA handoff.
+
+## 2026-05-26 local - devops - TASK-009
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Completed the launcher rework by extending `compose.local.yaml` with a containerized `frontend` service for `frontend/website`, adding frontend-related port/container/image overrides plus dependency-cache volumes, updating `README.md` and `docs/run-application.md`, and revalidating the full stack locally through backend endpoints, website routes, and the frontend auth proxy.
+- Evidence: `compose.local.yaml`; `README.md`; `docs/run-application.md`; `df/artifacts/TASK-009/devops/dev-notes.md`; `df/artifacts/TASK-009/devops/handoff-to-qa.md`; `df/artifacts/TASK-009/handoffs.md`; `docker compose -f compose.local.yaml config --services`; `DF_DB_PORT=55441 DF_APP_PORT=18092 DF_WEB_PORT=3002 DF_POSTGRES_CONTAINER_NAME=df-local-postgres-task009-dev DF_BACKEND_CONTAINER_NAME=df-local-backend-task009-dev DF_FRONTEND_CONTAINER_NAME=df-local-frontend-task009-dev docker compose -f compose.local.yaml up -d`; Python polling of `http://127.0.0.1:18092/platform/status`, `http://127.0.0.1:18092/api-docs`, `http://127.0.0.1:3002/`, and `http://127.0.0.1:3002/login`; `curl -X POST http://127.0.0.1:3002/api/auth/login -H 'Content-Type: application/json' -d '{"username":"bootstrap-admin","password":"BootstrapPassword!123"}'`; `DF_DB_PORT=55441 DF_APP_PORT=18092 DF_WEB_PORT=3002 DF_POSTGRES_CONTAINER_NAME=df-local-postgres-task009-dev DF_BACKEND_CONTAINER_NAME=df-local-backend-task009-dev DF_FRONTEND_CONTAINER_NAME=df-local-frontend-task009-dev docker compose -f compose.local.yaml down -v`
+- Result: PASS
+- Next: New session required. `qa` should independently verify that the compose launcher now starts PostgreSQL, the Spring backend, and `frontend/website` together, then decide whether `TASK-009` advances to `READY_FOR_PO` or returns for rework.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: devops
+- Reason: DevOps rework and local validation are complete; the updated compose launcher is ready for independent QA verification.
+- Evidence: `df/artifacts/TASK-009/devops/dev-notes.md`; `df/artifacts/TASK-009/devops/handoff-to-qa.md`; `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/handoffs.md`; `compose.local.yaml`; `README.md`; `docs/run-application.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `qa` should independently validate full-stack compose startup, frontend reachability, backend reachability, auth-proxy behavior, and cleanup.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-010
+- From: OPEN
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: Promoted the explicit user request for an on-demand AWS deployment pipeline into a new task and started architecture because the work affects GitHub Actions CI/CD, AWS credential handling, OCI publication, Kubernetes rollout, and rollback/verification expectations.
+- Evidence: `df/artifacts/TASK-010/task.md`; `df/artifacts/TASK-010/solution-design.md`; `devops/container/platform-core/Containerfile`; `devops/kubernetes/platform-core/overlays/aws/kustomization.yaml`; `devops/iac/providers/aws/main.tf`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Complete the solution design, record the deployment decision, and hand the task to `devops` if the implementation remains single-lane.
+
+## 2026-05-26 local - sa - TASK-010
+
+- State: ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV
+- Action: Completed the architecture package for the user-requested on-demand AWS deployment pipeline. Defined a DevOps-owned manual GitHub Actions `workflow_dispatch` flow that uses the existing secrets `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`, builds and pushes the accepted `backend/platform-core` OCI image to ECR, renders the AWS Kubernetes overlay with deployment-time values, and deploys it to EKS without committing country-specific settings.
+- Evidence: `df/artifacts/TASK-010/task.md`; `df/artifacts/TASK-010/solution-design.md`; `df/artifacts/TASK-010/handoffs.md`; `df/artifacts/TASK-010/decision-024-on-demand-aws-github-actions-deployment.md`; `devops/container/platform-core/Containerfile`; `devops/container/platform-core/README.md`; `devops/kubernetes/platform-core/overlays/aws/kustomization.yaml`; `devops/kubernetes/platform-core/overlays/aws/provider-patch.yaml`; `devops/kubernetes/platform-core/overlays/aws/ingress.yaml`; `devops/iac/providers/aws/main.tf`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `df/runtime/decisions.md`
+- Result: PASS
+- Next: New session required. `devops` should implement the workflow, deployment-time manifest parameterization, and deployment documentation, then gather local plus GitHub/AWS validation evidence for QA.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-010
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_DEV
+- Role: sa
+- Reason: Architecture is complete and the task remains a single DevOps lane item with no blocking refinement questions.
+- Evidence: `df/artifacts/TASK-010/task.md`; `df/artifacts/TASK-010/solution-design.md`; `df/artifacts/TASK-010/handoffs.md`; `df/artifacts/TASK-010/decision-024-on-demand-aws-github-actions-deployment.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `df/runtime/decisions.md`
+- Next: `devops` should start implementation and create `df/artifacts/TASK-010/devops/dev-notes.md` before editing workflow/deployment files.
+

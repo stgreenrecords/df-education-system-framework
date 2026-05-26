@@ -45,53 +45,85 @@ The website project requires Node.js 20+ and npm.
 
 - Docker Desktop or another Docker-compatible runtime for quick local PostgreSQL startup
 
-## Recommended: single-file cross-platform launcher
+## Recommended: single-file terminal startup
 
-The repository now includes one cross-platform launcher file at the repository root:
+The repository now includes one terminal-first startup file at the repository root:
 
-- `RunLocal.java`
+- `compose.local.yaml`
 
-It is intended to work from the same command on Windows, macOS, and Linux:
-
-```zsh
-java RunLocal.java
-```
-
-What it does:
-
-- starts a local PostgreSQL container through Docker or Podman
-- starts the backend from `backend/platform-core`
-- waits for backend readiness
-- prints the local verification URLs
-- optionally tries to start `frontend/website`
-
-Backend-only startup:
+This is the intended cross-platform command for Windows, macOS, and Linux:
 
 ```zsh
-java RunLocal.java
+docker compose -f compose.local.yaml up
 ```
 
-Try backend + website startup:
+What it starts:
+
+- PostgreSQL 17 in a container
+- the Spring backend from the real repository module entrypoint `backend/platform-core`
+- the website frontend from `frontend/website`
+
+The first startup can take longer because:
+
+- the backend reactor is packaged inside the backend container before the application process starts
+- the frontend container installs the website dependencies before starting Next.js
+
+Useful variants:
 
 ```zsh
-java RunLocal.java --with-website
+docker compose -f compose.local.yaml up -d
+docker compose -f compose.local.yaml logs -f backend
+docker compose -f compose.local.yaml logs -f frontend
+docker compose -f compose.local.yaml down
+docker compose -f compose.local.yaml down -v
 ```
 
-Useful overrides:
+Use `down` when you want to stop the stack but keep the cached Maven/NPM volumes for faster next startup. Use `down -v` only when you intentionally want a clean reset of the database and dependency caches.
+
+Useful environment-variable overrides:
 
 ```zsh
-java RunLocal.java --db-port 55435 --app-port 18088
-java RunLocal.java --with-website --web-port 3010
-java RunLocal.java --keep-postgres
+export DF_DB_PORT="55435"
+export DF_APP_PORT="18088"
+export DF_WEB_PORT="3001"
+docker compose -f compose.local.yaml up
 ```
 
-If `node`/`npm` are unavailable, the launcher keeps the backend running and prints a clear message that the website was skipped.
+Supported overrides in the compose file:
 
-Show launcher help:
+- `DF_DB_PORT`
+- `DF_APP_PORT`
+- `DF_WEB_PORT`
+- `DF_DB_NAME`
+- `DF_DB_USER`
+- `DF_DB_PASSWORD`
+- `DF_POSTGRES_IMAGE`
+- `DF_POSTGRES_CONTAINER_NAME`
+- `DF_BACKEND_CONTAINER_NAME`
+- `DF_FRONTEND_CONTAINER_NAME`
+- `DF_NODE_IMAGE`
+- `DF_AUTH_JWT_SECRET`
+- `DF_AUTH_MFA_SECRET_ENCRYPTION_KEY`
+- `DF_BOOTSTRAP_ADMIN_USERNAME`
+- `DF_BOOTSTRAP_ADMIN_PASSWORD`
+- `DF_BOOTSTRAP_ADMIN_DISPLAY_NAME`
 
-```zsh
-java RunLocal.java --help
-```
+### Why this is the recommended path
+
+- one file
+- terminal-first
+- same `docker compose` command on Windows, macOS, and Linux
+- starts the database, Spring backend, and website together
+- avoids requiring a custom host-side launcher wrapper
+
+After startup, open:
+
+- website home: `http://127.0.0.1:3000/` (or your overridden `DF_WEB_PORT`)
+- website login: `http://127.0.0.1:3000/login`
+- student dashboard: `http://127.0.0.1:3000/student`
+- teacher dashboard: `http://127.0.0.1:3000/teacher`
+- backend health: `http://127.0.0.1:8080/platform/status` (or your overridden `DF_APP_PORT`)
+- OpenAPI: `http://127.0.0.1:8080/api-docs`
 
 ## Manual backend quick start with Docker PostgreSQL
 
@@ -187,7 +219,7 @@ Possible responses:
 
 ## Website quick start
 
-If Node.js 20+ and npm are available, start the website in a separate terminal.
+If you do not want to use the compose-based full-stack launcher, you can still start the website manually in a separate terminal.
 
 ```zsh
 cd frontend/website
@@ -211,7 +243,7 @@ The website proxies these backend calls through frontend-owned Next.js routes:
 - `GET /api/auth/me` -> backend `GET /api/v1/identity/me`
 - `POST /api/auth/logout` -> clears the website auth cookie
 
-If Node.js/npm are not installed yet, you can still run and validate the backend independently.
+The compose-based launcher does not require host-installed Node.js/npm because the website runs inside a Node.js container.
 
 ## Alternative local container workflow
 
@@ -223,9 +255,17 @@ That path is currently documented with PowerShell-oriented helper scripts for bu
 
 ## Stop and clean up
 
-If you started the stack with `RunLocal.java`, stop it with `Ctrl+C` in the launcher terminal.
+If you started the stack with Docker Compose, stop it with:
 
-By default, the launcher also removes its PostgreSQL container on exit unless you started it with `--keep-postgres`.
+```zsh
+docker compose -f compose.local.yaml down
+```
+
+Use this stronger reset only when you want to remove the local PostgreSQL data volume and the dependency caches used by Maven/NPM inside the compose services:
+
+```zsh
+docker compose -f compose.local.yaml down -v
+```
 
 Stop the backend process with `Ctrl+C` in the terminal where it is running.
 
@@ -263,6 +303,13 @@ docker run -d --name df-local-postgres -e POSTGRES_DB=education_framework -e POS
 export EDU_DB_URL="jdbc:postgresql://localhost:55434/education_framework"
 ```
 
+For the single-file Docker Compose path, override the published DB port before startup instead:
+
+```zsh
+export DF_DB_PORT="55434"
+docker compose -f compose.local.yaml up
+```
+
 ### Login returns `500` after startup
 
 Possible cause:
@@ -271,17 +318,20 @@ Possible cause:
 Fix:
 - use strong local raw-string secrets like the examples in this guide, or provide strong base64 values whose decoded key material is long enough
 
-### `npm` or `node` is missing
+### `npm` or `node` is missing on the host
 
 Cause:
 - the website project depends on Node.js 20+ and npm
 
 Fix:
-- install Node.js 20+ and rerun:
+- for the single-file launcher, this is not a blocker because the website runs in the `frontend` container
+- for the manual website workflow, install Node.js 20+ and rerun:
 
 ```zsh
 cd frontend/website
 npm install
 npm run dev
 ```
+
+This does not block the single-file compose startup path in `compose.local.yaml`, because the launcher now starts the website inside a containerized Node.js runtime.
 

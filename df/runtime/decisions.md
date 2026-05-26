@@ -138,5 +138,11 @@
   - Related task: `TASK-007`
   - Record: `df/artifacts/TASK-007/decision-023-flat-design-asset-root.md`
 
+- `DECISION-024` - The first repository-owned AWS deployment path will be a manual GitHub Actions `workflow_dispatch` pipeline that uses GitHub secrets `AWS_ACCESS_KEY` and `AWS_SECRET_KEY`, publishes the accepted `platform-core` OCI image to ECR, and deploys the existing AWS Kubernetes overlay to EKS with externalized deployment-time values.
+  - Date: 2026-05-26
+  - Status: Accepted
+  - Related task: `TASK-010`
+  - Record: `df/artifacts/TASK-010/decision-024-on-demand-aws-github-actions-deployment.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 
