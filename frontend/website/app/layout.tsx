@@ -4,7 +4,8 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Education System Framework Website",
-  description: "Non-visual Next.js + React foundation for the Education System Framework website project.",
+  description:
+    "Low-fidelity website implementation for the home page, login page, student dashboard, teacher dashboard, and initial login flow.",
 };
 
 export default function RootLayout({

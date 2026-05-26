@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.UUID;
 
 @Component
 public class PlatformIdentityAuditPort implements IdentityAuditPort {
@@ -42,6 +43,45 @@ public class PlatformIdentityAuditPort implements IdentityAuditPort {
                 actor.username(),
                 null,
                 createdAssignment,
+                auditMetadata(actor)
+        ));
+    }
+
+    @Override
+    public void recordMfaEnrollmentStarted(AuthenticatedUserPrincipal actor, UUID factorId) {
+        auditService.recordEvent(new AuditEventWriteCommand(
+                "IDENTITY_MFA_FACTOR",
+                factorId.toString(),
+                "ENROLL",
+                actor.username(),
+                null,
+                Map.of("factorId", factorId, "factorType", "TOTP", "status", "PENDING"),
+                auditMetadata(actor)
+        ));
+    }
+
+    @Override
+    public void recordMfaActivated(AuthenticatedUserPrincipal actor, UUID factorId) {
+        auditService.recordEvent(new AuditEventWriteCommand(
+                "IDENTITY_MFA_FACTOR",
+                factorId.toString(),
+                "ACTIVATE",
+                actor.username(),
+                null,
+                Map.of("factorId", factorId, "factorType", "TOTP", "status", "ACTIVE"),
+                auditMetadata(actor)
+        ));
+    }
+
+    @Override
+    public void recordMfaVerificationFailed(AuthenticatedUserPrincipal actor, String challengePurpose) {
+        auditService.recordEvent(new AuditEventWriteCommand(
+                "IDENTITY_MFA_FACTOR",
+                actor.userId().toString(),
+                "VERIFY_FAILED",
+                actor.username(),
+                null,
+                Map.of("challengePurpose", challengePurpose, "factorType", "TOTP"),
                 auditMetadata(actor)
         ));
     }

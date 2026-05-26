@@ -1,6 +1,7 @@
 package com.darkfactory.education.identityaccess.auth;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.JwtParser;
 import io.jsonwebtoken.io.Decoders;
@@ -22,6 +23,10 @@ public class AuthenticationTokenService {
     private static final String TENANT_ID_CLAIM = "tenantId";
     private static final String DISPLAY_NAME_CLAIM = "displayName";
     private static final String AUTHORITY_CLAIM = "authority";
+    private static final String TOKEN_USE_CLAIM = "tokenUse";
+    private static final String CHALLENGE_PURPOSE_CLAIM = "challengePurpose";
+    private static final String ACCESS_TOKEN_USE = "ACCESS";
+    private static final String MFA_CHALLENGE_TOKEN_USE = "MFA_CHALLENGE";
 
     private final AuthProperties authProperties;
 
@@ -38,24 +43,54 @@ public class AuthenticationTokenService {
             OffsetDateTime issuedAt,
             Duration tokenTtl
     ) {
-        OffsetDateTime expiresAt = issuedAt.plus(tokenTtl);
-        String token = Jwts.builder()
-                .id(principal.userId().toString())
-                .subject(principal.username())
-                .issuedAt(Date.from(issuedAt.toInstant()))
-                .expiration(Date.from(expiresAt.toInstant()))
-                .claim(TENANT_ID_CLAIM, principal.tenantId().toString())
-                .claim(AUTHORITY_CLAIM, principal.authority().name())
-                .claim(DISPLAY_NAME_CLAIM, principal.displayName())
+        Duration resolvedTokenTtl = normalizePositiveDuration(tokenTtl, "Access-token TTL");
+        OffsetDateTime expiresAt = issuedAt.plus(resolvedTokenTtl);
+        String token = tokenBuilder(principal, issuedAt, expiresAt)
+                .claim(TOKEN_USE_CLAIM, ACCESS_TOKEN_USE)
                 .signWith(signingKey())
                 .compact();
 
         return new IssuedAccessToken(token, expiresAt);
     }
 
+    public IssuedMfaChallengeToken issueMfaChallengeToken(
+            AuthenticatedUserPrincipal principal,
+            MfaChallengePurpose purpose
+    ) {
+        OffsetDateTime issuedAt = OffsetDateTime.now(ZoneOffset.UTC);
+        OffsetDateTime expiresAt = issuedAt.plus(authProperties.requirePositiveMfaChallengeTtl());
+        String token = tokenBuilder(principal, issuedAt, expiresAt)
+                .claim(TOKEN_USE_CLAIM, MFA_CHALLENGE_TOKEN_USE)
+                .claim(CHALLENGE_PURPOSE_CLAIM, purpose.name())
+                .signWith(signingKey())
+                .compact();
+
+        return new IssuedMfaChallengeToken(token, expiresAt, purpose);
+    }
+
     public AuthenticatedUserPrincipal parseAccessToken(String token) {
         Claims claims = parser().parseSignedClaims(token).getPayload();
+        requireTokenUse(claims, ACCESS_TOKEN_USE);
+        return principalFromClaims(claims);
+    }
 
+    public ParsedMfaChallengeToken parseMfaChallengeToken(String token) {
+        Claims claims = parser().parseSignedClaims(token).getPayload();
+        requireTokenUse(claims, MFA_CHALLENGE_TOKEN_USE);
+
+        String challengePurpose = claims.get(CHALLENGE_PURPOSE_CLAIM, String.class);
+        if (!StringUtils.hasText(challengePurpose)) {
+            throw new IllegalArgumentException("JWT is missing MFA challenge purpose.");
+        }
+
+        return new ParsedMfaChallengeToken(
+                principalFromClaims(claims),
+                MfaChallengePurpose.parse(challengePurpose),
+                claims.getExpiration().toInstant().atOffset(ZoneOffset.UTC)
+        );
+    }
+
+    private AuthenticatedUserPrincipal principalFromClaims(Claims claims) {
         String username = claims.getSubject();
         String authority = claims.get(AUTHORITY_CLAIM, String.class);
         String tenantId = claims.get(TENANT_ID_CLAIM, String.class);
@@ -76,6 +111,41 @@ public class AuthenticationTokenService {
                 displayName,
                 IdentityUserAuthority.valueOf(authority)
         );
+    }
+
+    private void requireTokenUse(Claims claims, String expectedTokenUse) {
+        String tokenUse = claims.get(TOKEN_USE_CLAIM, String.class);
+        if (!StringUtils.hasText(tokenUse)) {
+            if (ACCESS_TOKEN_USE.equals(expectedTokenUse)) {
+                return;
+            }
+            throw new IllegalArgumentException("JWT is missing token-use metadata.");
+        }
+        if (!expectedTokenUse.equals(tokenUse)) {
+            throw new IllegalArgumentException("JWT token use is not valid for this operation.");
+        }
+    }
+
+    private JwtBuilder tokenBuilder(
+            AuthenticatedUserPrincipal principal,
+            OffsetDateTime issuedAt,
+            OffsetDateTime expiresAt
+    ) {
+        return Jwts.builder()
+                .id(principal.userId().toString())
+                .subject(principal.username())
+                .issuedAt(Date.from(issuedAt.toInstant()))
+                .expiration(Date.from(expiresAt.toInstant()))
+                .claim(TENANT_ID_CLAIM, principal.tenantId().toString())
+                .claim(AUTHORITY_CLAIM, principal.authority().name())
+                .claim(DISPLAY_NAME_CLAIM, principal.displayName());
+    }
+
+    private Duration normalizePositiveDuration(Duration value, String description) {
+        if (value == null || value.isZero() || value.isNegative()) {
+            throw new IllegalArgumentException(description + " must be a positive duration.");
+        }
+        return value;
     }
 
     private JwtParser parser() {

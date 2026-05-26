@@ -132,5 +132,11 @@
   - Related task: `STORY-082`
   - Record: `df/artifacts/STORY-082/decision-022-phase-1-admin-mfa-foundation.md`
 
+- `DECISION-023` - Root design assets use `design/{page-slug}/` instead of `design/{task-id}/{page-slug}/`, while task-owned design documentation remains under `df/artifacts/{task-id}/design/`.
+  - Date: 2026-05-25
+  - Status: Accepted
+  - Related task: `TASK-007`
+  - Record: `df/artifacts/TASK-007/decision-023-flat-design-asset-root.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 

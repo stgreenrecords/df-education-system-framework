@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TASK-006 Student Dashboard Low-Fi Wireframe</title>
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --line: #1f2937;
+        --muted: #6b7280;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Arial, sans-serif; background: var(--bg); color: var(--line); }
+      .page { max-width: 1280px; margin: 0 auto; padding: 24px; }
+      .screen { border: 3px solid var(--line); background: var(--card); }
+      .screen-title { margin: 0; padding: 12px 16px; background: #e5e7eb; border-bottom: 3px solid var(--line); }
+      .nav, .summary, .grid, .actions { padding: 16px; }
+      .nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-bottom: 2px solid var(--line); }
+      .group, .action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .chip, .card, .action { border: 2px solid var(--line); background: #fafafa; padding: 10px 14px; }
+      .summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; border-bottom: 2px solid var(--line); }
+      .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .card { min-height: 160px; }
+      .label { font-size: 12px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+      .actions { border-top: 2px solid var(--line); }
+      @media (max-width: 900px) {
+        .summary, .grid { grid-template-columns: 1fr; }
+        .action { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="screen">
+        <h1 class="screen-title">Student dashboard — low-fi block scheme</h1>
+        <div class="nav">
+          <div class="chip">Student dashboard / Greeting / Context</div>
+          <div class="group">
+            <div class="chip">Notifications</div>
+            <div class="chip">Profile</div>
+          </div>
+        </div>
+        <div class="summary">
+          <div class="card">Today's lessons</div>
+          <div class="card">Pending homework</div>
+          <div class="card">New grades</div>
+          <div class="card">Attendance</div>
+        </div>
+        <div class="grid">
+          <div class="card">Today's schedule</div>
+          <div class="card">Assignments / homework</div>
+          <div class="card">Grade highlights</div>
+          <div class="card">Announcements</div>
+        </div>
+        <div class="actions">
+          <div class="label">Quick actions</div>
+          <div class="action-row">
+            <div class="action">View schedule</div>
+            <div class="action">Open homework</div>
+            <div class="action">Open gradebook</div>
+            <div class="action">Messages</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+

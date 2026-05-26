@@ -1998,6 +1998,114 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Evidence: `df/artifacts/STORY-080/backend/dev-notes.md`; `df/artifacts/STORY-080/backend/handoff-to-qa.md`; `df/artifacts/STORY-080/handoffs.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityBootstrapService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityUserService.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/identity/PlatformActiveTenantProvider.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/identity/PlatformIdentityAuditPort.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/identity/IdentityBootstrapRunner.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/SecurityConfiguration.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`; `backend/platform-core/src/main/resources/db/migration/V9__create_identity_user_table.sql`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
 - Next: `qa` should rerun the focused auth integration checks and inspect the new auth boundary, migration, and protected-route behavior independently.
 
+## 2026-05-26 local - State change
+
+- Task: TASK-006
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: frontend-dev
+- Reason: Started implementation of the four designed `frontend/website` pages after confirming the revised design package, current website project structure, and accepted backend auth/current-user endpoints needed for the initial login flow.
+- Evidence: `df/artifacts/TASK-006/task.md`; `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/runtime/board.md`; `df/runtime/frontend-dev-board.md`; `frontend/website/package.json`; `frontend/website/app/page.tsx`
+- Next: Implement the website routes, frontend-owned auth proxy wiring, and initial validation evidence.
+
+## 2026-05-26 local - frontend-dev - TASK-006
+
+- State: DEV_IN_PROGRESS
+- Action: Reviewed the frontend role checklist, task artifact, revised design package, frontend handoff, root wireframes, current `frontend/website` project files, and accepted backend auth/current-user contract before starting implementation.
+- Evidence: `df/artifacts/TASK-006/task.md`; `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `design/home-page/low-fi-wireframe.html`; `design/login-page/low-fi-wireframe.html`; `design/student-dashboard/low-fi-wireframe.html`; `design/teacher-dashboard/low-fi-wireframe.html`; `frontend/website/package.json`; `frontend/website/app/page.tsx`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationController.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityUserController.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/CurrentUserResponse.java`
+- Result: PASS — required inputs are present and the frontend scope is implementation-ready.
+- Next: Implement the four-page website UI skeleton, initial login flow, and local validation path.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-006
+- From: DEV_IN_PROGRESS
+- To: BLOCKED
+- Role: frontend-dev
+- Reason: The four-page website implementation was completed, but local frontend validation cannot run because the current shell environment does not expose `node`, `npm`, `npx`, or `corepack`.
+- Evidence: `df/artifacts/TASK-006/frontend/website/dev-notes.md`; `df/artifacts/TASK-006/handoffs.md`; `df/runtime/board.md`; `df/runtime/frontend-dev-board.md`; `df/runtime/risks.md`; `frontend/website/app/page.tsx`; `frontend/website/app/login/page.tsx`; `frontend/website/app/student/page.tsx`; `frontend/website/app/teacher/page.tsx`; `frontend/website/app/api/auth/login/route.ts`; `frontend/website/app/api/auth/me/route.ts`; `frontend/website/app/api/auth/logout/route.ts`
+- Next: Restore Node.js/npm availability and resume `frontend-dev` validation before sending the task to QA.
+
+## 2026-05-26 local - frontend-dev - TASK-006
+
+- State: BLOCKED
+- Action: Implemented the low-fidelity `frontend/website` home page, login page, student dashboard, teacher dashboard, and frontend-owned auth proxy handlers, then attempted frontend validation.
+- Evidence: `df/artifacts/TASK-006/frontend/website/dev-notes.md`; `frontend/website/app/page.tsx`; `frontend/website/app/login/page.tsx`; `frontend/website/app/student/page.tsx`; `frontend/website/app/teacher/page.tsx`; `frontend/website/components/login-form.tsx`; `frontend/website/components/dashboard-page.tsx`; `frontend/website/app/api/auth/login/route.ts`; `frontend/website/app/api/auth/me/route.ts`; `frontend/website/app/api/auth/logout/route.ts`; `frontend/website/lib/auth.ts`; `frontend/website/lib/backend.ts`; `frontend/website/app/globals.css`; `frontend/website/README.md`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework/frontend/website" && npm install && npm run lint && npm run typecheck && npm run build`; `command -v node`; `command -v npm`; `command -v npx`; `command -v corepack`; `which -a node`; `which -a npm`
+- Result: BLOCKED — implementation is in place, but local install/lint/typecheck/build/manual route testing could not run because Node.js/npm are unavailable on this workstation.
+- Next: New session required after environment recovery. Resume `frontend-dev` on a Node-enabled machine or shell, complete the documented validation commands, and only then move `TASK-006` toward QA.
+
+## 2026-05-26 local - State change
+
+- Task: STORY-082
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: backend-dev
+- Reason: Started backend implementation of administrator MFA after confirming the accepted design, current identity/RBAC seams, runtime lane ownership, and repository status.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/solution-design.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`
+- Next: Implement challenge-based admin MFA, protected factor persistence, and focused backend integration coverage.
+
+## 2026-05-26 local - backend-dev - STORY-082
+
+- State: DEV_IN_PROGRESS
+- Action: Reviewed the backend role checklist, STORY-082 task/design/decision/handoff artifacts, current authentication/RBAC services, Spring Security runtime wiring, integration-test seams, and repository status before starting implementation.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/solution-design.md`; `df/artifacts/STORY-082/handoffs.md`; `df/artifacts/STORY-082/decision-022-phase-1-admin-mfa-foundation.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationController.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationTokenService.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/SecurityConfiguration.java`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `git --no-pager status --short`
+- Result: PASS — required inputs are present and the backend-only MFA scope is implementation-ready.
+- Next: Apply the backend code, extend integration coverage, run focused plus broader backend verification, and prepare QA handoff evidence.
+
+## 2026-05-26 local - backend-dev - STORY-082
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Completed the backend-only administrator MFA implementation, including challenge-based admin login branching, purpose-bound MFA challenge tokens, TOTP enrollment/activation/verification endpoints, protected secret handling and factor persistence, audit convergence, migration `V12`, and expanded backend integration coverage. Final validation exposed a regression in the shared integration-test login helper where JSON `null` fields were being treated as the literal string `"null"`; that helper was corrected and the full validation path was rerun successfully.
+- Evidence: `df/artifacts/STORY-082/backend/dev-notes.md`; `df/artifacts/STORY-082/backend/handoff-to-qa.md`; `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/handoffs.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationTokenService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityMfaService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityMfaController.java`; `backend/platform-core/src/main/resources/db/migration/V12__create_identity_mfa_factor_table.sql`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am -Dit.test=EducationSystemApplicationIT verify`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml clean verify`
+- Result: PASS — focused `EducationSystemApplicationIT` verification passed `48/48` and full backend `clean verify` completed with `BUILD SUCCESS`.
+- Next: New session required. `qa` should independently verify `STORY-082`, rerun the focused backend integration suite, inspect challenge-token separation plus protected-secret handling, and decide whether the story advances to `READY_FOR_PO` or returns to `backend-dev`.
+
+## 2026-05-26 local - State change
+
+- Task: STORY-082
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: backend-dev
+- Reason: Backend implementation, evidence, and validation are complete; the story is ready for independent QA verification.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `df/artifacts/STORY-082/backend/handoff-to-qa.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: `qa` takes ownership of independent verification for `STORY-082`.
+
+## 2026-05-26 local - State change
+
+- Task: STORY-082
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: Started independent QA verification of the backend-only administrator MFA implementation using the backend handoff, targeted source inspection, and rerun validation commands.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/handoffs.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `df/artifacts/STORY-082/backend/handoff-to-qa.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Rerun focused verification, inspect critical MFA security seams, and either pass the story to `READY_FOR_PO` or return it for rework with defects.
+
+## 2026-05-26 local - qa - STORY-082
+
+- State: QA_IN_PROGRESS
+- Action: Reviewed the QA checklist plus the STORY-082 task, backend handoff, backend dev notes, runtime state, acceptance criteria, changed-file inventory, and stated QA focus areas before starting independent verification.
+- Evidence: `df/roles/qa.md`; `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/handoffs.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `df/artifacts/STORY-082/backend/handoff-to-qa.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/activity-log.md`
+- Result: PASS — required QA inputs are present and the story is ready for independent verification.
+- Next: Rerun automated verification, inspect critical MFA token/secret/migration seams, and record the QA result.
+
+## 2026-05-26 local - qa - STORY-082
+
+- State: QA_IN_PROGRESS -> READY_FOR_PO
+- Action: Completed independent backend QA for the administrator MFA story by rerunning the focused `EducationSystemApplicationIT` suite and full backend `clean verify`, inspecting challenge-token/access-token separation in the JWT flow, confirming admin-role-derived MFA enforcement, validating protected-secret handling, and confirming migration `V12` plus `/api-docs` exposure.
+- Evidence: `df/artifacts/STORY-082/qa-report.md`; `df/artifacts/STORY-082/handoffs.md`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/AuthenticationTokenService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityAuthenticationService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/IdentityMfaService.java`; `backend/identity-access/src/main/java/com/darkfactory/education/identityaccess/auth/MfaSecretProtectionService.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/JwtAuthenticationFilter.java`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/security/SecurityConfiguration.java`; `backend/platform-core/src/main/resources/db/migration/V12__create_identity_mfa_factor_table.sql`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am -Dit.test=EducationSystemApplicationIT verify`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml clean verify`
+- Result: PASS — focused integration verification passed `48/48`, full backend regression completed with `BUILD SUCCESS`, and no QA defects were found.
+- Next: New session required. `po` should perform backend-only product validation of `STORY-082`, confirm screenshots are not applicable, and decide whether to accept the story or reject it for rework.
+
+## 2026-05-26 local - State change
+
+- Task: STORY-082
+- From: QA_IN_PROGRESS
+- To: READY_FOR_PO
+- Role: qa
+- Reason: Independent QA verification passed with no defects; the story is ready for PO review.
+- Evidence: `df/artifacts/STORY-082/qa-report.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: `po` takes ownership of backend-only product validation for `STORY-082`.
+
 ## 2026-05-24 22:56 local - backend-dev - STORY-080
 
 - State: DEV_IN_PROGRESS → READY_FOR_QA
@@ -2462,4 +2570,218 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Reason: Completed the backend-only administrator-MFA design, recorded `DECISION-022`, updated architecture/runtime evidence, and routed implementation to the `backend-dev` lane.
 - Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/solution-design.md`; `df/artifacts/STORY-082/decision-022-phase-1-admin-mfa-foundation.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `df/runtime/decisions.md`; `df/runtime/risks.md`
 - Next: `backend-dev` begins implementation of `STORY-082`.
+
+## 2026-05-25 18:51 local - designer - TASK-006
+
+- State: READY_FOR_DESIGN → READY_FOR_DEV
+- Action: Created `TASK-006` from the explicit user request, reviewed the website frontend foundation, produced the low-fidelity design package for the home page, student dashboard, and teacher dashboard, added a static wireframe artifact, and handed the task to `frontend-dev` for implementation.
+- Evidence: `df/artifacts/TASK-006/task.md`; `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/low-fi-wireframes.html`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/artifacts/TASK-006/handoffs.md`; `frontend/README.md`; `frontend/website/README.md`; `frontend/website/app/page.tsx`; `df/runtime/board.md`; `df/runtime/design-board.md`; `df/runtime/frontend-dev-board.md`
+- Result: PASS
+- Next: New session required. `frontend-dev` should implement the `frontend/website` screens from the delivered design package.
+- Risks/blockers: Final brand direction and exact dashboard data contracts may later refine the low-fidelity structure; no blocker prevents first-pass frontend implementation.
+
+## 2026-05-25 18:51 local - State change
+
+- Task: TASK-006
+- From: OPEN
+- To: READY_FOR_DESIGN
+- Role: designer
+- Reason: Created a new design task from the user's explicit request for initial website block-scheme screens.
+- Evidence: `df/artifacts/TASK-006/task.md`; `df/runtime/board.md`; `df/runtime/design-board.md`
+- Next: Start design work for the requested `frontend/website` screens.
+
+## 2026-05-25 18:51 local - State change
+
+- Task: TASK-006
+- From: READY_FOR_DESIGN
+- To: DESIGN_IN_PROGRESS
+- Role: designer
+- Reason: Began the design package after confirming current website scope and existing frontend conventions.
+- Evidence: `frontend/README.md`; `frontend/website/README.md`; `frontend/website/app/page.tsx`; `df/artifacts/TASK-006/task.md`
+- Next: Complete the low-fidelity block schemes and implementation handoff.
+
+## 2026-05-25 18:51 local - State change
+
+- Task: TASK-006
+- From: DESIGN_IN_PROGRESS
+- To: READY_FOR_DEV
+- Role: designer
+- Reason: The design package is implementable, the target scope is known (`frontend/website`), and the task is ready for frontend implementation.
+- Evidence: `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/low-fi-wireframes.html`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/artifacts/TASK-006/handoffs.md`; `df/runtime/board.md`; `df/runtime/frontend-dev-board.md`
+- Next: `frontend-dev` implements the package in a new session.
+
+## 2026-05-25 18:51 local - designer - TASK-006
+
+- State: READY_FOR_DEV
+- Action: Reorganized the `TASK-006` page-specific design assets so each screen now has its own dedicated folder under `df/artifacts/TASK-006/design/`, updated the package and handoff references to the new structure, and removed the old combined wireframe file.
+- Evidence: `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/artifacts/TASK-006/handoffs.md`; `df/artifacts/TASK-006/design/home-page/low-fi-wireframe.html`; `df/artifacts/TASK-006/design/student-dashboard/low-fi-wireframe.html`; `df/artifacts/TASK-006/design/teacher-dashboard/low-fi-wireframe.html`
+- Result: PASS
+- Next: `frontend-dev` should use the per-page folders under `df/artifacts/TASK-006/design/` as the source of truth for implementation.
+- Risks/blockers: None.
+
+### Correction note - 2026-05-25 19:10 local
+
+- The final agreed convention is: task design docs remain under `df/artifacts/{task-id}/design/`, but design asset files live under the root `design/{task-id}/{page-slug}/` folders.
+- Correct `TASK-006` asset paths are:
+  - `design/TASK-006/home-page/low-fi-wireframe.html`
+  - `design/TASK-006/student-dashboard/low-fi-wireframe.html`
+  - `design/TASK-006/teacher-dashboard/low-fi-wireframe.html`
+
+## 2026-05-25 19:45 local - State change
+
+- Task: TASK-007
+- From: OPEN
+- To: NEEDS_ARCHITECTURE
+- Role: sa
+- Reason: The user explicitly requested removal of the `{task-id}` layer from root design asset paths, which requires a framework documentation/process update.
+- Evidence: `df/artifacts/TASK-007/task.md`; `df/runtime/board.md`; `AGENTS.md`; `.github/copilot-instructions.md`
+- Next: Document the path-convention change, move the live root design assets, and prepare QA handoff evidence.
+
+## 2026-05-25 19:45 local - State change
+
+- Task: TASK-007
+- From: NEEDS_ARCHITECTURE
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: The request changes the active design-asset structure and needs a documented framework decision, scope guardrails, and migration steps for live task assets.
+- Evidence: `df/artifacts/TASK-007/task.md`; `df/artifacts/TASK-007/solution-design.md`
+- Next: Update the affected framework docs, migrate `TASK-006` asset paths, and record the decision and runtime evidence.
+
+## 2026-05-25 19:45 local - State change
+
+- Task: TASK-007
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: sa
+- Reason: The documentation-only convention change, `TASK-006` path migration, runtime updates, and QA handoff artifacts are complete. No delivery lane applies.
+- Evidence: `df/artifacts/TASK-007/task.md`; `df/artifacts/TASK-007/solution-design.md`; `df/artifacts/TASK-007/decision-023-flat-design-asset-root.md`; `df/artifacts/TASK-007/handoffs.md`; `design/home-page/low-fi-wireframe.html`; `design/student-dashboard/low-fi-wireframe.html`; `design/teacher-dashboard/low-fi-wireframe.html`; `df/runtime/board.md`
+- Next: `qa` independently verifies the convention change, migrated references, and documentation-only scope.
+
+## 2026-05-25 19:45 local - sa - TASK-007
+
+- State: READY_FOR_QA
+- Action: Processed the explicit documentation request to remove the `{task-id}` layer from root design asset paths. Updated active framework guidance to use `design/{page-slug}/`, added the globally unique page-slug rule, migrated the live `TASK-006` root design assets to `design/{home-page,student-dashboard,teacher-dashboard}/`, refreshed the current design-package/handoff references, recorded `DECISION-023`, and prepared a QA handoff for the documentation-only change.
+- Evidence: `AGENTS.md`; `.github/copilot-instructions.md`; `df/04-documentation-standards.md`; `df/roles/designer.md`; `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/artifacts/TASK-006/handoffs.md`; `df/artifacts/TASK-007/task.md`; `df/artifacts/TASK-007/solution-design.md`; `df/artifacts/TASK-007/decision-023-flat-design-asset-root.md`; `df/artifacts/TASK-007/handoffs.md`; `design/home-page/low-fi-wireframe.html`; `design/student-dashboard/low-fi-wireframe.html`; `design/teacher-dashboard/low-fi-wireframe.html`
+- Result: PASS
+- Next: New session required. `qa` should verify the updated path convention and confirm no application code or API contract changes were introduced.
+- Risks/blockers: `RISK-032`
+
+### Correction note - 2026-05-25 19:45 local
+
+- `TASK-007` supersedes the earlier root design asset convention noted above.
+- The active framework convention is now: task design docs remain under `df/artifacts/{task-id}/design/`, but root design assets live under `design/{page-slug}/`.
+- Live `TASK-006` asset paths are now:
+  - `design/home-page/low-fi-wireframe.html`
+  - `design/student-dashboard/low-fi-wireframe.html`
+  - `design/teacher-dashboard/low-fi-wireframe.html`
+
+## 2026-05-26 local - qa - TASK-007
+
+- State: READY_FOR_QA → READY_FOR_PO
+- Action: Independently verified the documentation-only convention change that removed the root design-task folder layer. Confirmed the active framework guidance now consistently uses `design/{page-slug}/`, verified the globally unique descriptive page-slug rule in shared designer instructions, confirmed the live `TASK-006` references point to the flattened root asset paths, verified the three flattened root asset folders exist, and found no application-code or API-contract impact.
+- Evidence: `df/artifacts/TASK-007/qa-report.md`; `df/artifacts/TASK-007/handoffs.md`; `AGENTS.md`; `.github/copilot-instructions.md`; `df/04-documentation-standards.md`; `df/roles/designer.md`; `df/runtime/board.md`; `df/runtime/design-board.md`; `df/runtime/frontend-dev-board.md`; `df/runtime/decisions.md`; `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/artifacts/TASK-006/handoffs.md`; `design/home-page/low-fi-wireframe.html`; `design/student-dashboard/low-fi-wireframe.html`; `design/teacher-dashboard/low-fi-wireframe.html`; `grep_search` for stale old-path references; `get_errors` on updated docs/runtime files; `file_search` for `design/TASK-006/**` and flattened page-slug assets.
+- Result: PASS
+- Next: New session required. `po` should review `TASK-007` and either accept the documentation/design-asset convention change or reject it with evidence.
+- Risks/blockers: `RISK-032` remains open — future design tasks must keep root page slugs globally unique to avoid collisions.
+
+## 2026-05-26 local - po - TASK-007
+
+- State: READY_FOR_PO → DONE
+- Action: Completed product review of the QA-approved documentation-only design-asset convention change. Independently confirmed the active framework guidance and live `TASK-006` references now consistently use `design/{page-slug}/`, verified the flattened root asset folders exist while the old `design/TASK-006/` layer is absent, documented why screenshots are not applicable for this non-UI task, and accepted the simplified convention as good enough for ongoing designer/frontend handoffs.
+- Evidence: `df/artifacts/TASK-007/po-review.md`; `df/artifacts/TASK-007/qa-report.md`; `df/artifacts/TASK-007/handoffs.md`; `AGENTS.md`; `.github/copilot-instructions.md`; `df/04-documentation-standards.md`; `df/roles/designer.md`; `df/runtime/board.md`; `df/runtime/decisions.md`; `df/runtime/risks.md`; `df/artifacts/TASK-006/design/design-package.md`; `df/artifacts/TASK-006/design/handoff-to-frontend.md`; `df/artifacts/TASK-006/handoffs.md`; `grep_search` for stale old-path references; `file_search` for `design/TASK-006/**` and flattened page-slug assets.
+- Result: PASS
+- Next: New session required. `sa` should inspect the runtime board and select the next highest-priority actionable task.
+- Risks/blockers: Accepted `RISK-032` as an ongoing process guardrail rather than a blocker for this task.
+
+## 2026-05-26 local - State change
+
+- Task: STORY-082
+- From: READY_FOR_PO
+- To: PO_REVIEW
+- Role: po
+- Reason: Started backend-only product review after confirming the QA pass report, backend lane evidence, and the non-UI validation path for administrator MFA.
+- Evidence: `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/qa-report.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `df/artifacts/STORY-082/backend/handoff-to-qa.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`
+- Next: Independently rerun focused backend product validation and decide whether to accept `STORY-082`.
+
+## 2026-05-26 local - po - STORY-082
+
+- State: PO_REVIEW
+- Action: Reviewed the QA-approved administrator MFA artifacts, confirmed that screenshots are not applicable because the story is backend-only with no UI deliverable, reran the focused backend integration suite independently, and traced the executable acceptance-criteria coverage for admin challenge flows, valid activation/verification, invalid-code denial, non-admin direct-token compatibility, migration `V12`, and `/api-docs` exposure.
+- Evidence: `df/artifacts/STORY-082/po-review.md`; `df/artifacts/STORY-082/qa-report.md`; `df/artifacts/STORY-082/backend/dev-notes.md`; `df/artifacts/STORY-082/backend/handoff-to-qa.md`; `df/artifacts/STORY-082/handoffs.md`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `backend/platform-core/src/main/resources/db/migration/V12__create_identity_mfa_factor_table.sql`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am -Dit.test=EducationSystemApplicationIT verify`
+- Result: PASS
+- Next: Accept `STORY-082` as product-complete if the focused validation continues to show the intended backend-only MFA outcome.
+
+## 2026-05-26 local - State change
+
+- Task: STORY-082
+- From: PO_REVIEW
+- To: DONE
+- Role: po
+- Reason: PO accepted the backend-only administrator MFA story after independent product validation confirmed the expected MFA outcome and documented the non-UI evidence path.
+- Evidence: `df/artifacts/STORY-082/po-review.md`; `df/artifacts/STORY-082/task.md`; `df/artifacts/STORY-082/handoffs.md`; `df/runtime/board.md`; `df/runtime/backend-dev-board.md`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am -Dit.test=EducationSystemApplicationIT verify`
+- Next: New session required. `sa` should inspect the runtime board and determine whether any actionable task remains beyond blocked `TASK-006`.
+
+## 2026-05-26 local - po - STORY-082
+
+- State: PO_REVIEW → DONE
+- Action: Accepted `STORY-082` after independently rerunning the focused backend product-validation path, confirming screenshots are not applicable for this backend-only story, and validating that administrator logins now require second-factor proof while non-admin logins remain compatible with the accepted direct bearer-token path.
+- Evidence: `df/artifacts/STORY-082/po-review.md`; `df/artifacts/STORY-082/qa-report.md`; `backend/platform-core/src/test/java/com/darkfactory/education/platform/EducationSystemApplicationIT.java`; `backend/platform-core/src/main/resources/db/migration/V12__create_identity_mfa_factor_table.sql`; `cd "/Users/Viachaslau_Karnaushanka/Downloads/DF Education System Framework" && sh ./mvnw -f backend/pom.xml -pl platform-core -am -Dit.test=EducationSystemApplicationIT verify`
+- Result: PASS
+- Next: New session required. `sa` should inspect the runtime board and determine whether any actionable task remains beyond blocked `TASK-006`.
+
+## 2026-05-26 local - sa - TASK-008
+
+- State: READY_FOR_QA
+- Action: Processed the explicit user request for run documentation as a documentation-only change. Inspected the current backend/frontend/container entrypoints, verified the correct backend startup path from `backend/platform-core`, validated live `/platform/status`, `/api-docs`, and bootstrap-admin login behavior against a temporary local PostgreSQL container, documented prerequisite and troubleshooting details in `docs/run-application.md`, linked the guide from the root `README.md`, and cleaned up the temporary backend/container runtime used for verification.
+- Evidence: `README.md`; `docs/run-application.md`; `df/artifacts/TASK-008/task.md`; `df/artifacts/TASK-008/solution-design.md`; `df/artifacts/TASK-008/handoffs.md`; `backend/platform-core/pom.xml`; `backend/platform-core/src/main/java/com/darkfactory/education/platform/EducationSystemApplication.java`; `backend/platform-core/src/main/resources/application.properties`; `frontend/website/package.json`; `frontend/website/README.md`; `devops/container/platform-core/README.md`; `command -v java`; `command -v node`; `command -v npm`; `command -v docker`; `command -v psql`; `docker run -d --name df-docs-postgres -e POSTGRES_DB=education_framework -e POSTGRES_USER=education_framework -e POSTGRES_PASSWORD=education_framework -p 55433:5432 postgres:17-alpine`; `sh ./mvnw -f backend/platform-core/pom.xml spring-boot:run`; `curl http://127.0.0.1:8080/platform/status`; `curl http://127.0.0.1:8080/api-docs`; `curl -X POST http://127.0.0.1:8080/api/v1/identity/auth/login -H 'Content-Type: application/json' -d '{"username":"bootstrap-admin","password":"BootstrapPassword!123"}'`
+- Result: PASS
+- Next: New session required. `qa` should independently verify the documentation-only run guide and decide whether `TASK-008` advances to `READY_FOR_PO` or returns for rework.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-008
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: sa
+- Reason: Completed the documentation-only local run guide and linked it from the root README; no delivery lane or application-code change applies.
+- Evidence: `df/artifacts/TASK-008/task.md`; `df/artifacts/TASK-008/solution-design.md`; `df/artifacts/TASK-008/handoffs.md`; `README.md`; `docs/run-application.md`; `df/runtime/board.md`
+- Next: `qa` should independently verify the documentation accuracy and documentation-only scope for `TASK-008`.
+
+## 2026-05-26 local - sa - TASK-009
+
+- State: READY_FOR_DEV
+- Action: Processed the explicit user request for a single startup file across Windows, macOS, and Linux as a new runtime-automation task. Reviewed the existing local run guide, backend module entrypoint, frontend toolchain constraints, and current DevOps-owned runtime assets; selected a single Java source launcher as the safest cross-platform one-file execution model because Java 25 is already a backend prerequisite; documented acceptance criteria, constraints, risks, and the DevOps implementation approach; and routed the task to `devops`.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/solution-design.md`; `df/artifacts/TASK-009/handoffs.md`; `docs/run-application.md`; `README.md`; `backend/platform-core/pom.xml`; `backend/platform-core/src/main/resources/application.properties`; `frontend/website/package.json`; `devops/container/platform-core/README.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Result: PASS
+- Next: New session required. `devops` should implement the single-file launcher, validate the local startup path, and hand off to QA.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: OPEN
+- To: NEEDS_ARCHITECTURE
+- Role: sa
+- Reason: The explicit request requires repository-owned cross-platform startup automation and cannot be safely satisfied by documentation alone.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/runtime/board.md`
+- Next: Complete architecture and decide the owning delivery lane.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: NEEDS_ARCHITECTURE
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: Started architecture because the task affects OS-specific process invocation, local database/runtime orchestration, environment-variable handling, and startup verification behavior.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/solution-design.md`
+- Next: Define the smallest safe implementation approach and route the task to the correct lane.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-009
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_DEV
+- Role: sa
+- Reason: Completed the architecture for a DevOps-owned single-file cross-platform launcher and routed implementation to `devops`.
+- Evidence: `df/artifacts/TASK-009/task.md`; `df/artifacts/TASK-009/solution-design.md`; `df/artifacts/TASK-009/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `devops` should implement the launcher and validate the local startup flow.
 

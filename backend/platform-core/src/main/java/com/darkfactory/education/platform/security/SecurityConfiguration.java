@@ -39,7 +39,8 @@ public class SecurityConfiguration {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/api/v1/platform/tenant",
-                                "/api/v1/identity/auth/login"
+                                "/api/v1/identity/auth/login",
+                                "/api/v1/identity/auth/mfa/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.POST, "/api/v1/identity/users").authenticated()
                         .requestMatchers(HttpMethod.GET, "/api/v1/identity/me").authenticated()

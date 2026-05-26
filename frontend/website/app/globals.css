@@ -2,6 +2,15 @@
   color-scheme: light;
   font-family: Inter, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
+  --page-bg: #f3f4f6;
+  --surface: #ffffff;
+  --surface-muted: #f9fafb;
+  --border: #1f2937;
+  --border-soft: #d1d5db;
+  --text: #111827;
+  --muted: #6b7280;
+  --accent: #dbeafe;
+  --warning: #fee2e2;
 }
 
 * {
@@ -15,29 +24,240 @@ body {
 }
 
 body {
-  background: #f5f7fb;
-  color: #111827;
+  background: var(--page-bg);
+  color: var(--text);
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+h1,
+h2,
+h3,
+p,
+ul {
+  margin-top: 0;
 }
 
 main {
   min-height: 100vh;
-  padding: 3rem 1.5rem;
 }
 
-section {
-  max-width: 48rem;
+.page-shell {
+  width: min(1200px, calc(100% - 2rem));
   margin: 0 auto;
-  padding: 2rem;
-  background: #ffffff;
-  border: 1px solid #d9e2f1;
-  border-radius: 1rem;
+  padding: 2rem 0 3rem;
 }
 
-h1 {
-  margin-top: 0;
+.page-shell--centered {
+  display: flex;
+  align-items: center;
 }
 
-ul {
+.surface-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+}
+
+.page-panel {
+  padding: 1.5rem;
+}
+
+.top-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  padding-bottom: 1.5rem;
+  border-bottom: 2px solid var(--border);
+}
+
+.nav-actions,
+.actions-row,
+.helper-links {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.helper-links {
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 2px solid var(--border);
+}
+
+.hero-block,
+.content-stack,
+.split-layout {
+  margin-top: 1.5rem;
+}
+
+.hero-block {
+  padding: 1.5rem;
+  border: 2px solid var(--border);
+  background: var(--surface-muted);
+}
+
+.split-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.panel-block,
+.content-card,
+.metric-card,
+.info-card {
+  border: 2px solid var(--border);
+  background: var(--surface-muted);
+  padding: 1rem;
+}
+
+.info-stack {
+  display: grid;
+  gap: 1rem;
+}
+
+.metric-grid,
+.content-grid {
+  display: grid;
+  gap: 1rem;
+}
+
+.metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.content-grid--two {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.content-grid--three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.content-grid--four {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.content-grid:not(.content-grid--two):not(.content-grid--three):not(.content-grid--four) {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metric-value {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.metric-card--loading,
+.empty-state,
+.muted-copy {
+  color: var(--muted);
+}
+
+.eyebrow {
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+}
+
+.detail-list {
   padding-left: 1.25rem;
+  margin-bottom: 0;
+}
+
+.detail-list li + li {
+  margin-top: 0.5rem;
+}
+
+.button-link,
+.text-link,
+.text-input {
+  border: 2px solid var(--border);
+  padding: 0.75rem 1rem;
+  background: var(--surface);
+  text-decoration: none;
+}
+
+.button-link {
+  cursor: pointer;
+}
+
+.button-link--primary {
+  background: var(--accent);
+}
+
+.button-link:focus-visible,
+.text-link:focus-visible,
+.text-input:focus-visible {
+  outline: 3px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.text-input {
+  width: 100%;
+}
+
+.field-label {
+  font-weight: 600;
+}
+
+.form-stack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.inline-message {
+  border: 2px solid var(--border);
+  padding: 1rem;
+}
+
+.inline-message--neutral {
+  background: var(--surface-muted);
+}
+
+.inline-message--error {
+  background: var(--warning);
+}
+
+@media (max-width: 1024px) {
+  .metric-grid,
+  .content-grid--three,
+  .content-grid--four {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 768px) {
+  .page-shell {
+    width: min(100%, calc(100% - 1rem));
+    padding: 1rem 0 2rem;
+  }
+
+  .split-layout,
+  .metric-grid,
+  .content-grid,
+  .content-grid--two,
+  .content-grid--three,
+  .content-grid--four {
+    grid-template-columns: 1fr;
+  }
+
+  .button-link,
+  .text-link {
+    width: 100%;
+    text-align: center;
+  }
 }
 

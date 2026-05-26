@@ -96,6 +96,8 @@ Every meaningful action must update at least one runtime artifact:
 - `df/runtime/backend-dev-board.md`, `df/runtime/frontend-dev-board.md`, `df/runtime/devops-board.md`, or `df/runtime/data-engineer-board.md` for delivery-lane tasks
 - task-specific artifacts under `df/artifacts/{task-id}/`
 
+For designer work, keep task documentation such as `design-package.md` and handoff notes under `df/artifacts/{task-id}/design/`, but store design assets such as HTML, PNG, SVG, PDF, or similar deliverable files under the root-level `design/{page-slug}/` folder structure. Each page/screen must use its own dedicated folder with a globally unique, descriptive slug.
+
 Use templates from `df/templates/` whenever possible.
 
 ## Tooling neutrality

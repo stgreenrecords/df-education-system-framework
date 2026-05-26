@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TASK-006 Login Page Low-Fi Wireframe</title>
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --line: #1f2937;
+        --muted: #6b7280;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--line);
+      }
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .screen {
+        border: 3px solid var(--line);
+        background: var(--card);
+      }
+      .screen-title {
+        margin: 0;
+        padding: 12px 16px;
+        background: #e5e7eb;
+        border-bottom: 3px solid var(--line);
+      }
+      .nav, .helper-links {
+        padding: 16px;
+        border-bottom: 2px solid var(--line);
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+      .helper-links {
+        border-bottom: 0;
+        border-top: 2px solid var(--line);
+      }
+      .shell {
+        padding: 16px;
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+      .group {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .chip, .panel, .field, .button, .link-block, .state {
+        border: 2px solid var(--line);
+        background: #fafafa;
+        padding: 10px 14px;
+      }
+      .panel {
+        min-height: 260px;
+      }
+      .field + .field,
+      .field + .button,
+      .button + .state {
+        margin-top: 10px;
+      }
+      .label {
+        font-size: 12px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      @media (max-width: 900px) {
+        .shell {
+          grid-template-columns: 1fr;
+        }
+        .button, .link-block {
+          width: 100%;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="screen">
+        <h1 class="screen-title">Login page — low-fi block scheme</h1>
+        <div class="nav">
+          <div class="chip">Logo / Product name</div>
+          <div class="group">
+            <div class="chip">Back to home</div>
+            <div class="chip">Help</div>
+          </div>
+        </div>
+        <div class="shell">
+          <div class="panel">
+            <div class="label">Intro / trust panel</div>
+            <h2>Account login</h2>
+            <p>Sign in with your account credentials to continue to your learning workspace.</p>
+            <div class="field">Security / access note</div>
+            <div class="field">Support / contact guidance</div>
+          </div>
+          <div class="panel">
+            <div class="label">Sign-in form</div>
+            <div class="field">Username field</div>
+            <div class="field">Password field</div>
+            <div class="button">Sign in</div>
+            <div class="state">Inline state area: loading / invalid credentials / unsupported role</div>
+          </div>
+        </div>
+        <div class="helper-links">
+          <div class="group">
+            <div class="link-block">Institution selection</div>
+            <div class="link-block">Contact support</div>
+          </div>
+          <div class="link-block">Return to home</div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+

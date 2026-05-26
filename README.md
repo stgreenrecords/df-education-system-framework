@@ -93,6 +93,23 @@ Build paths:
 
 Future frontend validation must preserve independent project paths for website-only, Android-only, iOS-only, and all-frontend checks.
 
+## Run the application locally
+
+Use the dedicated run guide for exact prerequisites, environment variables, backend startup, health checks, optional bootstrap-admin login, and website startup:
+
+- [`docs/run-application.md`](./docs/run-application.md)
+
+Quick summary:
+
+- Recommended cross-platform launcher: `java RunLocal.java`
+- Optional website startup: `java RunLocal.java --with-website`
+- Backend application entrypoint: `backend/platform-core`
+- Manual backend fallback command: `sh ./mvnw -f backend/platform-core/pom.xml spring-boot:run`
+- Backend health endpoint: `GET /platform/status`
+- OpenAPI endpoint: `GET /api-docs`
+- Website project: `frontend/website` (requires Node.js 20+ and npm)
+- Website proxy default backend URL: `http://127.0.0.1:8080`
+
 ## Non-Negotiable Factory Principles
 
 - One source of truth: task state and evidence must be documented.

@@ -2,7 +2,10 @@ package com.darkfactory.education.platform;
 
 import com.darkfactory.education.identityaccess.auth.AuthenticationTokenService;
 import com.darkfactory.education.identityaccess.auth.IdentityBootstrapService;
+import com.darkfactory.education.identityaccess.auth.IdentityMfaService;
+import com.darkfactory.education.identityaccess.auth.TotpService;
 import com.darkfactory.education.identityaccess.auth.IdentityUserRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.darkfactory.education.platform.tenant.TenantBootstrapRunner;
 import com.darkfactory.education.platform.tenant.TenantContext;
@@ -51,6 +54,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class EducationSystemApplicationIT {
 
     private static final String JWT_SECRET = "local-test-jwt-secret-value-1234567890";
+    private static final String MFA_ENCRYPTION_KEY = "local-test-mfa-encryption-key-1234567890";
     private static final String BOOTSTRAP_ADMIN_USERNAME = "bootstrap-admin";
     private static final String BOOTSTRAP_ADMIN_PASSWORD = "BootstrapPassword!123";
     private static final String BOOTSTRAP_ADMIN_DISPLAY_NAME = "Bootstrap Administrator";
@@ -77,6 +81,8 @@ class EducationSystemApplicationIT {
         registry.add("edu.translation.global-fallback-language", () -> "en");
         registry.add("edu.translation.cache-ttl", () -> "PT2M");
         registry.add("edu.auth.jwt-secret", () -> JWT_SECRET);
+        registry.add("edu.auth.mfa-secret-encryption-key", () -> MFA_ENCRYPTION_KEY);
+        registry.add("edu.auth.mfa-totp-issuer-label", () -> "Education Framework Test");
         registry.add("edu.auth.bootstrap-admin-username", () -> BOOTSTRAP_ADMIN_USERNAME);
         registry.add("edu.auth.bootstrap-admin-password", () -> BOOTSTRAP_ADMIN_PASSWORD);
         registry.add("edu.auth.bootstrap-admin-display-name", () -> BOOTSTRAP_ADMIN_DISPLAY_NAME);
@@ -119,6 +125,12 @@ class EducationSystemApplicationIT {
     private IdentityBootstrapService identityBootstrapService;
 
     @Autowired
+    private IdentityMfaService identityMfaService;
+
+    @Autowired
+    private TotpService totpService;
+
+    @Autowired
     private ObjectMapper objectMapper;
 
     private MockMvc mockMvc;
@@ -152,7 +164,7 @@ class EducationSystemApplicationIT {
         );
 
         assertThat(markerCount).isEqualTo(1);
-        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("11");
+        assertThat(flyway.info().current().getVersion().getVersion()).isEqualTo("12");
     }
 
     @Test
@@ -179,7 +191,7 @@ class EducationSystemApplicationIT {
                 .map(info -> info.getVersion().getVersion())
                 .toArray(String[]::new);
 
-        assertThat(appliedVersions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11");
+        assertThat(appliedVersions).containsExactly("1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12");
     }
 
     @Test
@@ -202,15 +214,18 @@ class EducationSystemApplicationIT {
     }
 
     @Test
-    void validCredentialsReturnBearerAccessToken() throws Exception {
+    void adminCredentialsReturnMfaEnrollmentChallengeBeforeAccessToken() throws Exception {
         mockMvc.perform(post("/api/v1/identity/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {"username":"%s","password":"%s"}
                                 """.formatted(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isString())
-                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.accessToken").doesNotExist())
+                .andExpect(jsonPath("$.mfaEnrollmentRequired").value(true))
+                .andExpect(jsonPath("$.mfaRequired").value(false))
+                .andExpect(jsonPath("$.challengeToken").isString())
+                .andExpect(jsonPath("$.challengePurpose").value("ENROLL"))
                 .andExpect(jsonPath("$.expiresAt").isNotEmpty());
     }
 
@@ -221,6 +236,90 @@ class EducationSystemApplicationIT {
                         .content("""
                                 {"username":"%s","password":"wrong-password"}
                                 """.formatted(BOOTSTRAP_ADMIN_USERNAME)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void nonAdminCredentialsStillReturnBearerAccessTokenDirectly() throws Exception {
+        String adminToken = loginAndExtractAccessToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD);
+        createUserAndExtractUserId(adminToken, "student.one", "StudentPassword!123", "Student One");
+
+        mockMvc.perform(post("/api/v1/identity/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"student.one","password":"StudentPassword!123"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.mfaRequired").value(false))
+                .andExpect(jsonPath("$.mfaEnrollmentRequired").value(false))
+                .andExpect(jsonPath("$.challengeToken").doesNotExist());
+    }
+
+    @Test
+    void adminActivationWithValidTotpReturnsBearerAccessToken() throws Exception {
+        String challengeToken = loginAndExtractChallengeToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD, "ENROLL");
+
+        String enrollmentResponse = mockMvc.perform(post("/api/v1/identity/auth/mfa/enroll")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s"}
+                                """.formatted(challengeToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.factorType").value("TOTP"))
+                .andExpect(jsonPath("$.secret").isString())
+                .andExpect(jsonPath("$.provisioningUri").isString())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String secret = objectMapper.readTree(enrollmentResponse).path("secret").asText();
+        String currentCode = totpCodeForSecret(secret);
+
+        mockMvc.perform(post("/api/v1/identity/auth/mfa/activate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s","totpCode":"%s"}
+                                """.formatted(challengeToken, currentCode)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"))
+                .andExpect(jsonPath("$.mfaEnrollmentRequired").value(false))
+                .andExpect(jsonPath("$.mfaRequired").value(false));
+    }
+
+    @Test
+    void adminWithActiveMfaMustVerifyBeforeAccessTokenIsIssued() throws Exception {
+        enrollBootstrapAdminMfa();
+        String verifyChallenge = loginAndExtractChallengeToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD, "VERIFY");
+
+        mockMvc.perform(post("/api/v1/identity/auth/mfa/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s","totpCode":"%s"}
+                                """.formatted(
+                                        verifyChallenge,
+                                        identityMfaService.currentTotpCodeForUser(
+                                                BOOTSTRAP_ADMIN_USERNAME,
+                                                tenantContextService.getActiveTenant().tenantId()
+                                        )
+                                )))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andExpect(jsonPath("$.tokenType").value("Bearer"));
+    }
+
+    @Test
+    void invalidAdminTotpVerificationIsDenied() throws Exception {
+        enrollBootstrapAdminMfa();
+        String verifyChallenge = loginAndExtractChallengeToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD, "VERIFY");
+
+        mockMvc.perform(post("/api/v1/identity/auth/mfa/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s","totpCode":"000000"}
+                                """.formatted(verifyChallenge)))
                 .andExpect(status().isUnauthorized());
     }
 
@@ -1045,6 +1144,9 @@ class EducationSystemApplicationIT {
         mockMvc.perform(get("/api-docs"))
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("/api/v1/identity/auth/login")))
+                .andExpect(content().string(containsString("/api/v1/identity/auth/mfa/enroll")))
+                .andExpect(content().string(containsString("/api/v1/identity/auth/mfa/activate")))
+                .andExpect(content().string(containsString("/api/v1/identity/auth/mfa/verify")))
                 .andExpect(content().string(containsString("/api/v1/identity/users")))
                 .andExpect(content().string(containsString("/api/v1/identity/me")))
                 .andExpect(content().string(containsString("/api/v1/identity/role-assignments")))
@@ -1098,6 +1200,7 @@ class EducationSystemApplicationIT {
     }
 
     private void resetIdentityData() {
+        jdbcTemplate.update("delete from identity_mfa_factor");
         jdbcTemplate.update("delete from identity_role_assignment");
         jdbcTemplate.update("delete from identity_user");
         identityBootstrapService.ensureBootstrapAdmin();
@@ -1204,6 +1307,44 @@ class EducationSystemApplicationIT {
         );
     }
 
+    private void enrollBootstrapAdminMfa() throws Exception {
+        String enrollmentChallenge = loginAndExtractChallengeToken(BOOTSTRAP_ADMIN_USERNAME, BOOTSTRAP_ADMIN_PASSWORD, "ENROLL");
+        String enrollmentResponse = mockMvc.perform(post("/api/v1/identity/auth/mfa/enroll")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s"}
+                                """.formatted(enrollmentChallenge)))
+                .andExpect(status().isOk())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String secret = objectMapper.readTree(enrollmentResponse).path("secret").asText();
+        mockMvc.perform(post("/api/v1/identity/auth/mfa/activate")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s","totpCode":"%s"}
+                                """.formatted(enrollmentChallenge, totpCodeForSecret(secret))))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString());
+    }
+
+    private String loginAndExtractChallengeToken(String username, String password, String expectedPurpose) throws Exception {
+        String responseBody = mockMvc.perform(post("/api/v1/identity/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"username":"%s","password":"%s"}
+                                """.formatted(username, password)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.challengeToken").isString())
+                .andExpect(jsonPath("$.challengePurpose").value(expectedPurpose))
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        return objectMapper.readTree(responseBody).path("challengeToken").asText();
+    }
+
     private String loginAndExtractAccessToken(String username, String password) throws Exception {
         String responseBody = mockMvc.perform(post("/api/v1/identity/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -1211,13 +1352,83 @@ class EducationSystemApplicationIT {
                                 {"username":"%s","password":"%s"}
                                 """.formatted(username, password)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.accessToken").isString())
-                .andExpect(jsonPath("$.tokenType").value("Bearer"))
                 .andReturn()
                 .getResponse()
                 .getContentAsString();
 
-        return objectMapper.readTree(responseBody).path("accessToken").asText();
+        JsonNode loginPayload = objectMapper.readTree(responseBody);
+        String accessToken = textValueOrBlank(loginPayload, "accessToken");
+        if (!accessToken.isBlank()) {
+            requireJwtLike(accessToken, "login", responseBody);
+            return accessToken;
+        }
+
+        String challengeToken = textValueOrBlank(loginPayload, "challengeToken");
+        String challengePurpose = textValueOrBlank(loginPayload, "challengePurpose");
+        if (challengeToken.isBlank() || challengePurpose.isBlank()) {
+            throw new IllegalStateException("Expected either an access token or an MFA challenge token.");
+        }
+
+        if ("ENROLL".equals(challengePurpose)) {
+            String enrollmentResponse = mockMvc.perform(post("/api/v1/identity/auth/mfa/enroll")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"challengeToken":"%s"}
+                                    """.formatted(challengeToken)))
+                    .andExpect(status().isOk())
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+
+            String secret = objectMapper.readTree(enrollmentResponse).path("secret").asText();
+            String activationResponse = mockMvc.perform(post("/api/v1/identity/auth/mfa/activate")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("""
+                                    {"challengeToken":"%s","totpCode":"%s"}
+                                    """.formatted(challengeToken, totpCodeForSecret(secret))))
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.accessToken").isString())
+                    .andReturn()
+                    .getResponse()
+                    .getContentAsString();
+
+            String activationAccessToken = objectMapper.readTree(activationResponse).path("accessToken").asText();
+            requireJwtLike(activationAccessToken, "activation", activationResponse);
+            return activationAccessToken;
+        }
+
+        String verificationResponse = mockMvc.perform(post("/api/v1/identity/auth/mfa/verify")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"challengeToken":"%s","totpCode":"%s"}
+                                """.formatted(
+                                        challengeToken,
+                                        identityMfaService.currentTotpCodeForUser(username, tenantContextService.getActiveTenant().tenantId())
+                                )))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andReturn()
+                .getResponse()
+                .getContentAsString();
+
+        String verificationAccessToken = objectMapper.readTree(verificationResponse).path("accessToken").asText();
+        requireJwtLike(verificationAccessToken, "verification", verificationResponse);
+        return verificationAccessToken;
+    }
+
+    private String totpCodeForSecret(String secret) {
+        return totpService.currentCode(secret);
+    }
+
+    private void requireJwtLike(String token, String context, String responseBody) {
+        if (token.chars().filter(character -> character == '.').count() != 2) {
+            throw new IllegalStateException("Expected JWT-like access token from MFA " + context + " response but received: " + responseBody);
+        }
+    }
+
+    private String textValueOrBlank(JsonNode node, String fieldName) {
+        JsonNode field = node.path(fieldName);
+        return field.isTextual() ? field.asText() : "";
     }
 
     private String bearer(String token) {

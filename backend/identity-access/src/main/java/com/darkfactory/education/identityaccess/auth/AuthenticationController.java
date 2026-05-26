@@ -20,9 +20,7 @@ public class AuthenticationController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request) {
         try {
-            return LoginResponse.fromIssuedToken(
-                    identityAuthenticationService.login(request.username(), request.password())
-            );
+            return identityAuthenticationService.login(request.username(), request.password());
         } catch (InvalidCredentialsException exception) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, exception.getMessage(), exception);
         } catch (IllegalArgumentException exception) {

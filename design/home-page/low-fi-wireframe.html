@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TASK-006 Home Page Low-Fi Wireframe</title>
+    <style>
+      :root {
+        --bg: #f3f4f6;
+        --card: #ffffff;
+        --line: #1f2937;
+        --muted: #6b7280;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: Arial, sans-serif;
+        background: var(--bg);
+        color: var(--line);
+      }
+      .page {
+        max-width: 1280px;
+        margin: 0 auto;
+        padding: 24px;
+      }
+      .screen {
+        border: 3px solid var(--line);
+        background: var(--card);
+      }
+      .screen-title {
+        margin: 0;
+        padding: 12px 16px;
+        background: #e5e7eb;
+        border-bottom: 3px solid var(--line);
+      }
+      .nav, .section, .hero { padding: 16px; border-bottom: 2px solid var(--line); }
+      .nav { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+      .group, .cta-row { display: flex; gap: 8px; flex-wrap: wrap; }
+      .chip, .cta, .block { border: 2px solid var(--line); background: #fafafa; padding: 10px 14px; }
+      .grid-two, .grid-three { display: grid; gap: 12px; }
+      .grid-two { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .block { min-height: 120px; }
+      .label { font-size: 12px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+      @media (max-width: 900px) {
+        .grid-two, .grid-three { grid-template-columns: 1fr; }
+        .cta { width: 100%; }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <section class="screen">
+        <h1 class="screen-title">Home page — low-fi block scheme</h1>
+        <div class="nav">
+          <div class="chip">Logo / Product name</div>
+          <div class="group">
+            <div class="chip">Language</div>
+            <div class="chip">Institution selection</div>
+            <div class="chip">Account login</div>
+          </div>
+        </div>
+        <div class="hero">
+          <div class="label">Banner / hero</div>
+          <h2>Manage learning across institutions with one secure platform</h2>
+          <p>Choose your institution or sign in to continue with your learning workspace.</p>
+          <div class="cta-row">
+            <div class="cta">Institution selection</div>
+            <div class="cta">Account login</div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Institution selection preview</h3>
+          <div class="grid-two">
+            <div class="block">Search / select institution block</div>
+            <div class="block">Recent institutions / quick categories</div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Platform value blocks</h3>
+          <div class="grid-three">
+            <div class="block">Teaching and learning</div>
+            <div class="block">Institution coordination</div>
+            <div class="block">Secure operations</div>
+          </div>
+        </div>
+        <div class="section">
+          <h3>Audience pathways</h3>
+          <div class="grid-three">
+            <div class="block">Student</div>
+            <div class="block">Teacher</div>
+            <div class="block">Institution</div>
+          </div>
+        </div>
+        <div class="section" style="border-bottom: 0;">
+          <h3>Footer</h3>
+          <div class="grid-two">
+            <div class="block">Help / accessibility / legal</div>
+            <div class="block">Contact / support / deployment note</div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
+

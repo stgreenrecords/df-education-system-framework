@@ -59,6 +59,22 @@ df/artifacts/{task-id}/
 `-- screenshots/
 ```
 
+Designer documentation stays under `df/artifacts/{task-id}/design/`, but designer asset files such as HTML, PNG, SVG, PDF, and similar deliverables must be stored under the root project folder:
+
+```text
+design/{page-slug}/
+```
+
+Use a globally unique, descriptive page slug so root-level folders remain unambiguous across tasks.
+
+Examples:
+
+```text
+design/home-page/low-fi-wireframe.html
+design/student-dashboard/dashboard.png
+design/teacher-dashboard/notes.pdf
+```
+
 Create only the lane folders that apply to the task. A backend-only task should not create or edit `frontend/`, `devops/`, `design/`, or `data/` artifact folders.
 
 If a task has no UI, the `screenshots/` folder may be omitted and PO must state why screenshots are not applicable.
@@ -80,7 +96,7 @@ Use the same table shape for `df/runtime/design-board.md`; its entries must use 
 
 Parallel implementation roles must avoid shared mutable documentation:
 
-- `designer` writes only `df/artifacts/{task-id}/design/` for design packages, markup guidance, assets notes, and handoffs.
+- `designer` writes task documentation in `df/artifacts/{task-id}/design/` and stores design asset files in `design/{page-slug}/` with one dedicated page folder per page/screen and a globally unique descriptive slug.
 - `backend-dev` writes only `df/artifacts/{task-id}/backend/` for implementation notes and lane evidence.
 - `frontend-dev` writes only the assigned project folder under `df/artifacts/{task-id}/frontend/website/`, `df/artifacts/{task-id}/frontend/android/`, or `df/artifacts/{task-id}/frontend/ios/` for implementation notes and lane evidence.
 - `devops` writes only `df/artifacts/{task-id}/devops/` for implementation notes and lane evidence.

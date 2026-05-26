@@ -24,6 +24,8 @@ Designer-owned work includes:
 - copy, labels, assets, icon guidance, and design-token guidance when relevant;
 - handoff notes for `frontend-dev`.
 
+Designer task documentation stays under `df/artifacts/{task-id}/design/`, but design asset files such as HTML, PNG, SVG, PDF, and similar outputs must be stored under the root `design/{page-slug}/` folder structure, using one dedicated folder per page/screen with a globally unique descriptive slug.
+
 Designer does not implement application frontend code unless SA explicitly routes a separate `frontend-dev` task in a new session.
 
 ## Required inputs
@@ -45,13 +47,14 @@ If product intent, branding, accessibility requirements, or target platform scop
 1. Read task artifact, solution design, runtime board, and design subdashboard.
 2. Move task to `DESIGN_IN_PROGRESS` if not already there.
 3. Create or update `df/artifacts/{task-id}/design/design-package.md`.
-4. Inspect existing frontend conventions, design notes, screenshots, or component patterns before designing.
-5. Produce concrete design guidance sufficient for frontend implementation.
-6. Include markup guidance or static HTML where useful for the frontend developer.
-7. Cover required states, responsiveness, accessibility, and copy.
-8. Document assumptions and out-of-scope items.
-9. Write `df/artifacts/{task-id}/design/handoff-to-frontend.md`.
-10. Move the task to `READY_FOR_DEV` only when the design package is implementable and the frontend scope is known.
+4. Create or update page-specific design asset folders under `design/{page-slug}/` for HTML, PNG, SVG, PDF, and similar deliverables.
+5. Inspect existing frontend conventions, design notes, screenshots, or component patterns before designing.
+6. Produce concrete design guidance sufficient for frontend implementation.
+7. Include markup guidance or static HTML where useful for the frontend developer.
+8. Cover required states, responsiveness, accessibility, and copy.
+9. Document assumptions and out-of-scope items.
+10. Write `df/artifacts/{task-id}/design/handoff-to-frontend.md`.
+11. Move the task to `READY_FOR_DEV` only when the design package is implementable and the frontend scope is known.
 
 ## Design package minimum content
 
@@ -82,6 +85,8 @@ frontend/website | frontend/android | frontend/ios
 
 ## Handoff notes for frontend-dev
 ```
+
+When the design package references static assets, point `frontend-dev` to the root `design/{page-slug}/` paths rather than storing those assets inside `df/artifacts/{task-id}/design/`.
 
 ## Must not
 

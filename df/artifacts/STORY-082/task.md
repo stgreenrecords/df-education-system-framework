@@ -14,7 +14,7 @@ P1
 
 ## Current state
 
-READY_FOR_DEV
+DONE
 
 ## Business goal
 
@@ -22,10 +22,10 @@ Strengthen the accepted Phase 1 security foundation by requiring a second factor
 
 ## Acceptance criteria
 
-- [ ] Given an admin account, when logging in, then MFA is required after password
-- [ ] Given MFA is configured, when a valid TOTP code is provided, then login succeeds
-- [ ] Given MFA is configured, when an invalid code is provided, then login is denied
-- [ ] Given a non-admin account, when logging in, then MFA is optional
+- [x] Given an admin account, when logging in, then MFA is required after password
+- [x] Given MFA is configured, when a valid TOTP code is provided, then login succeeds
+- [x] Given MFA is configured, when an invalid code is provided, then login is denied
+- [x] Given a non-admin account, when logging in, then MFA is optional
 
 ## Out of scope
 
@@ -73,4 +73,10 @@ Strengthen the accepted Phase 1 security foundation by requiring a second factor
 | 2026-05-25 14:22 local | sa | OPEN -> NEEDS_ARCHITECTURE | Selected `STORY-082` as the next strongest actionable Phase 1 follow-up because the accepted authentication and RBAC foundations now make administrator MFA the smallest high-value security increment inside the existing identity boundary without immediately expanding into broader cross-lane encryption/infrastructure work. |
 | 2026-05-25 14:22 local | sa | NEEDS_ARCHITECTURE -> ARCHITECTURE_IN_PROGRESS | Started architecture because the story changes authentication flows, adds security-sensitive persistence, introduces new backend auth endpoints/contracts, and must preserve compatibility with the accepted Phase 1 auth/RBAC foundation. |
 | 2026-05-25 14:22 local | sa | ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV | Completed the backend-only MFA design, recorded `DECISION-022`, updated the shared architecture direction, and routed implementation to `backend-dev`. |
+| 2026-05-26 local | backend-dev | READY_FOR_DEV -> DEV_IN_PROGRESS | Started backend-only MFA implementation after confirming the accepted design, current auth/RBAC seams, integration-test surface, and repository status. |
+| 2026-05-26 local | backend-dev | DEV_IN_PROGRESS -> READY_FOR_QA | Completed the backend-only MFA implementation, fixed the final integration-helper regression discovered during validation, passed focused `EducationSystemApplicationIT` verification (`48/48`) plus full backend `clean verify`, and handed the story to `qa`. |
+| 2026-05-26 local | qa | READY_FOR_QA -> QA_IN_PROGRESS | Started independent QA verification for the backend-only administrator MFA story using the backend handoff evidence, focused reruns, source inspection, and regression checks before deciding whether the story can advance to PO review. |
+| 2026-05-26 local | qa | QA_IN_PROGRESS -> READY_FOR_PO | Completed independent verification with focused `EducationSystemApplicationIT` rerun (`48/48`), full backend `clean verify` (`BUILD SUCCESS`), and direct inspection of challenge-token separation, protected-secret handling, migration `V12`, and `/api-docs` exposure; no defects were found. |
+| 2026-05-26 local | po | READY_FOR_PO -> PO_REVIEW | Started backend-only product review after confirming the QA pass report, backend lane evidence, and the non-UI validation path for administrator MFA. |
+| 2026-05-26 local | po | PO_REVIEW -> DONE | Accepted the backend-only administrator MFA story after independently rerunning focused product validation (`EducationSystemApplicationIT` `48/48`, `BUILD SUCCESS`), confirming screenshots are not applicable, and validating that admin logins now require second-factor proof while non-admin logins remain compatible. |
 
