@@ -1,0 +1,149 @@
+{
+  "jetbrainsProcessNames": [
+    "idea64",
+    "idea",
+    "pycharm64",
+    "pycharm",
+    "webstorm64",
+    "webstorm",
+    "goland64",
+    "goland",
+    "rider64",
+    "rider",
+    "studio64",
+    "studio"
+  ],
+  "jetbrainsWindowTitleKeywords": [
+    "IntelliJ",
+    "JetBrains",
+    "PyCharm",
+    "WebStorm",
+    "GoLand",
+    "Rider",
+    "Android Studio"
+  ],
+  "chatSurfaceButtonNames": [
+    "AI Assistant",
+    "JetBrains AI Assistant",
+    "AI Chat",
+    "Chat"
+  ],
+  "newConversationButtonNames": [
+    "New Chat",
+    "New chat",
+    "New Conversation",
+    "New conversation",
+    "Start New Chat",
+    "Start new chat"
+  ],
+  "promptInputNameHints": [
+    "Ask AI Assistant",
+    "Message",
+    "Prompt",
+    "Type a message",
+    "Ask a question",
+    "Write a message"
+  ],
+  "watchedButtonNames": [
+    "Keep All",
+    "Add to Git",
+    "Continue"
+  ],
+  "keyboardFallback": {
+    "enabled": true,
+    "actionSearchShortcut": "^+a",
+    "actionSearchOpenDelayMs": 250,
+    "actionSearchCommandDelayMs": 220,
+    "actionSearchSettleDelayMs": 700,
+    "promptFocusDelayMs": 450,
+    "promptPasteDelayMs": 220,
+    "promptSubmitDelayMs": 220,
+    "postSubmitVerificationDelayMs": 550,
+    "providerStrategies": [
+      {
+        "name": "github-copilot",
+        "pluginDirectoryNames": [
+          "github-copilot-intellij"
+        ],
+        "openChatShortcuts": [],
+        "chatSurfaceActionSearchCommands": [
+          "Copilot: Open Chat",
+          "GitHub Copilot Chat",
+          "Open Chat",
+          "GitHub Copilot Chat",
+          "Copilot Chat"
+        ],
+        "newConversationActionSearchCommands": [
+          "New Chat Session",
+          "New Conversation",
+          "New Chat"
+        ]
+      },
+      {
+        "name": "jetbrains-ai",
+        "pluginDirectoryNames": [],
+        "openChatShortcuts": [],
+        "chatSurfaceActionSearchCommands": [
+          "AI Chat",
+          "JetBrains AI Assistant",
+          "AI Assistant",
+          "Chat"
+        ],
+        "newConversationActionSearchCommands": [
+          "New Chat",
+          "New chat",
+          "New Conversation",
+          "New conversation",
+          "Start New Chat",
+          "Start new chat"
+        ]
+      }
+    ]
+  },
+  "watcher": {
+    "pollIntervalMs": 1500,
+    "debounceMs": 3000
+  },
+  "modes": {
+    "start-factory": {
+      "prompt": "pickup new task and start to work",
+      "ensureWatcher": true
+    },
+    "role-designer": {
+      "prompt": "Start a new session as designer and continue the Dark Factory loop for the highest-priority designer task.",
+      "ensureWatcher": true
+    },
+    "role-backend-dev": {
+      "prompt": "Start a new session as backend-dev and continue the Dark Factory loop for the highest-priority backend-dev task.",
+      "ensureWatcher": true
+    },
+    "role-devops": {
+      "prompt": "Start a new session as devops and continue the Dark Factory loop for the highest-priority devops task.",
+      "ensureWatcher": true
+    },
+    "role-frontend-dev": {
+      "prompt": "Start a new session as frontend-dev and continue the Dark Factory loop for the highest-priority frontend-dev task.",
+      "ensureWatcher": true
+    },
+    "role-data-engineer": {
+      "prompt": "Start a new session as data-engineer and continue the Dark Factory loop for the highest-priority data-engineer task.",
+      "ensureWatcher": true
+    },
+    "role-qa": {
+      "prompt": "Start a new session as qa and continue the Dark Factory loop for the highest-priority QA-ready task.",
+      "ensureWatcher": true
+    },
+    "role-po": {
+      "prompt": "Start a new session as po and continue the Dark Factory loop for the highest-priority PO-ready task.",
+      "ensureWatcher": true
+    },
+    "role-sa": {
+      "prompt": "Start a new session as sa and continue the Dark Factory loop for the highest-priority SA-owned task.",
+      "ensureWatcher": true
+    },
+    "watch-only": {
+      "prompt": "",
+      "ensureWatcher": false
+    }
+  }
+}

@@ -1,0 +1,177 @@
+name: Deploy platform-core to AWS (on-demand)
+
+on:
+  workflow_dispatch:
+    inputs:
+      aws_region:
+        description: AWS region for the target EKS cluster and ECR registry
+        required: true
+        type: string
+      eks_cluster_name:
+        description: Name of the target EKS cluster
+        required: true
+        type: string
+      ecr_registry:
+        description: ECR registry host (for example 123456789012.dkr.ecr.eu-central-1.amazonaws.com)
+        required: true
+        type: string
+      ecr_repository:
+        description: ECR repository name for platform-core
+        required: true
+        type: string
+        default: education-system-framework/platform-core
+      kubernetes_namespace:
+        description: Kubernetes namespace for the deployment
+        required: true
+        type: string
+        default: platform-core
+      service_host:
+        description: Public ingress host for platform-core
+        required: true
+        type: string
+      eks_role_arn:
+        description: Optional IRSA role ARN for the platform-core service account
+        required: false
+        type: string
+        default: ''
+      image_tag:
+        description: Optional image tag override. Defaults to sha-<short-commit>.
+        required: false
+        type: string
+        default: ''
+      dry_run:
+        description: Render manifests without pushing the image or applying to EKS
+        required: true
+        type: boolean
+        default: false
+
+concurrency:
+  group: deploy-aws-${{ inputs.aws_region }}-${{ inputs.eks_cluster_name }}-${{ inputs.kubernetes_namespace }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+env:
+  JAVA_VERSION: '25'
+
+jobs:
+  deploy:
+    name: Build, push, and deploy platform-core to AWS
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Ensure Maven wrapper is executable
+        run: chmod +x ./mvnw
+
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: ${{ env.JAVA_VERSION }}
+          cache: maven
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.33.1
+
+      - name: Resolve image coordinates
+        id: image
+        shell: bash
+        run: |
+          set -euo pipefail
+          image_tag="${{ inputs.image_tag }}"
+          if [ -z "$image_tag" ]; then
+            image_tag="sha-$(git rev-parse --short HEAD)"
+          fi
+
+          image_ref="${{ inputs.ecr_registry }}/${{ inputs.ecr_repository }}:${image_tag}"
+
+          {
+            echo "image_tag=${image_tag}"
+            echo "image_ref=${image_ref}"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "Image tag: ${image_tag}"
+          echo "Image ref: ${image_ref}"
+
+      - name: Build platform-core executable jar
+        run: ./mvnw -f backend/pom.xml -pl platform-core -am clean package -DskipTests
+
+      - name: Configure AWS credentials
+        if: ${{ !inputs.dry_run }}
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ inputs.aws_region }}
+
+      - name: Log in to Amazon ECR
+        if: ${{ !inputs.dry_run }}
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build platform-core image
+        run: |
+          docker build \
+            --file devops/container/platform-core/Containerfile \
+            --tag "${{ steps.image.outputs.image_ref }}" \
+            .
+
+      - name: Push platform-core image to ECR
+        if: ${{ !inputs.dry_run }}
+        run: docker push "${{ steps.image.outputs.image_ref }}"
+
+      - name: Render AWS deployment manifests
+        shell: pwsh
+        run: |
+          $outputPath = Join-Path $env:RUNNER_TEMP 'platform-core-aws-manifests.yaml'
+          .\devops\kubernetes\platform-core\render-aws-deployment.ps1 `
+            -ImageReference "${{ steps.image.outputs.image_ref }}" `
+            -ServiceHost "${{ inputs.service_host }}" `
+            -Namespace "${{ inputs.kubernetes_namespace }}" `
+            -EksRoleArn "${{ inputs.eks_role_arn }}" `
+            -OutputPath $outputPath `
+            -ValidateClientDryRun
+
+          Add-Content -Path $env:GITHUB_ENV -Value "RENDERED_MANIFESTS_PATH=$outputPath"
+          Get-Content -Path $outputPath -TotalCount 80
+
+      - name: Update kubeconfig for target EKS cluster
+        if: ${{ !inputs.dry_run }}
+        run: |
+          aws eks update-kubeconfig \
+            --region "${{ inputs.aws_region }}" \
+            --name "${{ inputs.eks_cluster_name }}"
+
+      - name: Preview apply against EKS API server
+        if: ${{ !inputs.dry_run }}
+        run: kubectl apply --dry-run=server --filename "$RENDERED_MANIFESTS_PATH"
+
+      - name: Apply manifests to EKS
+        if: ${{ !inputs.dry_run }}
+        run: kubectl apply --filename "$RENDERED_MANIFESTS_PATH"
+
+      - name: Wait for rollout
+        if: ${{ !inputs.dry_run }}
+        run: |
+          kubectl rollout status deployment/platform-core \
+            --namespace "${{ inputs.kubernetes_namespace }}" \
+            --timeout=180s
+
+      - name: Write workflow summary
+        shell: bash
+        run: |
+          echo "## AWS deployment summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image tag: ${{ steps.image.outputs.image_tag }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Image reference: ${{ steps.image.outputs.image_ref }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- AWS region: ${{ inputs.aws_region }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- EKS cluster: ${{ inputs.eks_cluster_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Kubernetes namespace: ${{ inputs.kubernetes_namespace }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Service host: ${{ inputs.service_host }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Dry run: ${{ inputs.dry_run }}" >> "$GITHUB_STEP_SUMMARY"
+

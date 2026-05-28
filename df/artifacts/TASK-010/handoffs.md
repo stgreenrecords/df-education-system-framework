@@ -67,3 +67,45 @@
 
 - None currently. Live AWS deployment validation may still depend on GitHub repository access and AWS permissions when DevOps executes the workflow.
 
+## devops -> qa
+
+- Timestamp: 2026-05-26 local
+- Task: TASK-010
+- From state: DEV_IN_PROGRESS
+- To state: READY_FOR_QA
+- Lane: devops
+- Summary: DevOps implemented the manual GitHub Actions AWS deployment pipeline for `platform-core`, added the AWS deployment runbook, introduced a reusable `render-aws-deployment.ps1` helper for deployment-time manifest parameterization, and documented local validation plus environment limits for QA follow-up.
+
+## Evidence
+
+- `.github/workflows/deploy-aws-on-demand.yml`
+- `docs/deploy-aws.md`
+- `README.md`
+- `devops/kubernetes/platform-core/render-aws-deployment.ps1`
+- `devops/kubernetes/platform-core/README.md`
+- `df/artifacts/TASK-010/devops/dev-notes.md`
+- `df/artifacts/TASK-010/devops/handoff-to-qa.md`
+- `df/artifacts/TASK-010/task.md`
+- `df/runtime/board.md`
+- `df/runtime/devops-board.md`
+- `df/runtime/activity-log.md`
+
+## Tests/checks
+
+| Check | Command/source | Result | Notes |
+|---|---|---|---|
+| PowerShell syntax check | PowerShell parser over `devops/kubernetes/platform-core/render-aws-deployment.ps1` | PASS | No syntax errors detected |
+| Baseline AWS overlay render | `./devops/kubernetes/platform-core/render-manifests.ps1 -Targets aws` | PASS | Provider-neutral base check passed |
+| AWS render helper with IRSA role | `render-aws-deployment.ps1 ... -EksRoleArn ... -ValidateClientDryRun` | PASS | Verified namespace/image/host injection and IRSA placeholder replacement |
+| AWS render helper without IRSA role | `render-aws-deployment.ps1 ... -ValidateClientDryRun` | PASS | Verified IRSA annotation removal when no role ARN is supplied |
+| Workflow YAML structure | Python `yaml.BaseLoader` parse of `.github/workflows/deploy-aws-on-demand.yml` | PASS | Confirmed workflow name, `workflow_dispatch`, and `deploy` job |
+| Workflow build path | `./mvnw.cmd -f backend/pom.xml -pl platform-core -am clean package -DskipTests` | PASS | `BUILD SUCCESS`; exec jar produced |
+| Workflow container build path | `docker build --file devops/container/platform-core/Containerfile --tag education-system-framework/platform-core:task-010-validate .` | PARTIAL | Docker daemon unavailable on this workstation, so command path verified but live build blocked by environment |
+
+## QA focus
+
+- Confirm all five acceptance criteria in `df/artifacts/TASK-010/task.md` are covered.
+- If GitHub Actions and AWS access exist, run at least one `dry_run=true` workflow execution and ideally one non-production live deploy.
+- Confirm the workflow uses the repository secrets `AWS_ACCESS_KEY` and `AWS_SECRET_KEY` without exposing them in logs.
+- Confirm the local Docker daemon limitation is treated as environment evidence, not a defect in the workflow path itself.
+

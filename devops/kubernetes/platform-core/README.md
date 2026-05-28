@@ -35,6 +35,20 @@ Forbidden in `base/`:
 
 The render helper uses `kubectl kustomize` and also checks that the base files do not contain provider-specific markers.
 
+For AWS deployment-time rendering with an image reference, namespace override, ingress host, and optional IRSA role ARN, use:
+
+```powershell
+.\devops\kubernetes\platform-core\render-aws-deployment.ps1 `
+  -ImageReference "123456789012.dkr.ecr.eu-central-1.amazonaws.com/education-system-framework/platform-core:sha-demo123" `
+  -ServiceHost "platform-core.example.edu" `
+  -Namespace "platform-core" `
+  -EksRoleArn "arn:aws:iam::123456789012:role/platform-core-irsa" `
+  -OutputPath ".\devops\kubernetes\platform-core\rendered-aws-deployment.yaml" `
+  -ValidateClientDryRun
+```
+
+The optional `-ValidateClientDryRun` switch performs an offline rendered-manifest safety check: it confirms the expected resources are present, confirms the requested namespace/image/host values landed, and verifies that the placeholder IRSA role ARN is replaced or removed.
+
 ## Overlay intent
 
 | Overlay | What changes outside the base |

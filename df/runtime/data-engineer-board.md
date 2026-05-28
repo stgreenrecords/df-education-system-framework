@@ -4,7 +4,7 @@ This is the live queue for `data-engineer` data population tasks. The main board
 
 | Priority | Task ID | Parent task | Title | State | Owner role | Affected scope | Blocked? | Last updated | Next action |
 |---|---|---|---|---|---|---|---|---|---|
-| - | - | - | No active data-engineering tasks | NO_TASKS | data-engineer | - | No | 2026-05-23 12:17 local | Await SA-routed data task |
+| P0 | TASK-011 | - | Prepare country-agnostic institution dataset for homepage selector | READY_FOR_QA | data-engineer | data/list-of-schools-poland and df/artifacts/TASK-011/data | No | 2026-05-26 local | `qa` validates dataset normalization, source map, and country-agnostic contract compliance |
 
 ## Lane notes
 

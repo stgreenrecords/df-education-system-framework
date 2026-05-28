@@ -14,7 +14,7 @@ P0
 
 ## Current state
 
-READY_FOR_DEV
+READY_FOR_QA
 
 ## Business goal
 
@@ -74,4 +74,5 @@ Reduce manual cloud-deployment work by giving operators a repository-owned, on-d
 | 2026-05-26 local | sa | OPEN -> NEEDS_ARCHITECTURE | Promoted the explicit user request for an on-demand AWS deployment pipeline into a new task. Refinement was skipped because the request is already narrow, testable, and anchored to the accepted AWS/OCI deployment baseline in the repository. |
 | 2026-05-26 local | sa | NEEDS_ARCHITECTURE -> ARCHITECTURE_IN_PROGRESS | Started architecture because the task affects CI/CD, cloud credential handling, container publication, Kubernetes deployment rollout, and rollback/verification expectations. |
 | 2026-05-26 local | sa | ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV | Selected a DevOps-owned manual GitHub Actions `workflow_dispatch` pipeline that reuses the existing `platform-core` OCI baseline plus AWS Kubernetes overlay and routed implementation to `devops`. |
+| 2026-05-26 local | devops | READY_FOR_DEV -> READY_FOR_QA | Implemented `.github/workflows/deploy-aws-on-demand.yml`, added the AWS deployment runbook and reusable manifest render helper, validated Maven plus offline manifest rendering, and prepared QA handoff evidence while documenting the local Docker/AWS runtime limitations. |
 

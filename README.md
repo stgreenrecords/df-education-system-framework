@@ -40,6 +40,15 @@ Dark Factory: start work.
 
 After receiving this command, the active agent must follow [df/00-start-here.md](df/00-start-here.md) and continue the SDLC loop until no actionable task remains or a blocking condition is reached.
 
+## Dark Factory launcher automation
+
+The repository also includes Windows-first JetBrains launcher automation so the operator can start the factory and follow role handoffs through the root `call-*.bash` scripts instead of manually retyping each prompt.
+
+- Launcher/watcher guide: [`docs/jetbrains-dark-factory-automation.md`](./docs/jetbrains-dark-factory-automation.md)
+- Initial launchers: `call-start-factory.ps1` (PowerShell / JetBrains PowerShell terminal) and `call-start-factory.bash` (Git Bash)
+- Role launchers: `.ps1` and `.bash` variants for `designer`, `sa`, `backend-dev`, `devops`, `frontend-dev`, `data-engineer`, `qa`, and `po`
+- Prompt submission remains UIAutomation-first but now includes a repository-owned keyboard fallback for JetBrains builds that do not expose a discoverable AI input element on the supported Windows baseline
+
 ## Minimal Repository Structure
 
 ```text
@@ -109,6 +118,15 @@ Quick summary:
 - OpenAPI endpoint: `GET /api-docs`
 - Website URL from the compose launcher: `http://127.0.0.1:3000`
 - Manual website project path: `frontend/website`
+
+## Deploy `platform-core` to AWS
+
+The repository now includes a manual GitHub Actions workflow for AWS deployment of the backend `platform-core` baseline.
+
+- AWS deployment runbook: [`docs/deploy-aws.md`](./docs/deploy-aws.md)
+- Workflow path: `.github/workflows/deploy-aws-on-demand.yml`
+- Secrets used by the workflow: `AWS_ACCESS_KEY`, `AWS_SECRET_KEY`
+- Deployment model: build the OCI image, push it to ECR, render the AWS Kubernetes overlay, and deploy to a selected EKS cluster
 
 ## Non-Negotiable Factory Principles
 

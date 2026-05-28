@@ -97,6 +97,10 @@ Unit Config (class/group/course-level settings)
 | Concept | Description |
 |---|---|
 | Subject | Taught discipline |
+| Supplemental Lesson Offering | Additional academic support offering such as extra English or additional math |
+| Extracurricular Offering | Optional institution-managed activity such as robotics, karate, martial arts, clubs, or other local programs |
+| Offering Area/Category | Classification for an additional offering, for example sports, STEM, languages, arts, or academic support |
+| Offering Enrollment | Student participation or registration in an optional institution-managed offering |
 | Schedule | Timetable of lessons |
 | Lesson | Single teaching period |
 | Attendance | Per-lesson or daily presence record |
@@ -191,9 +195,11 @@ Country 1──* Region 1──* City 1──* Institution 1──* AcademicUnit
 Institution 1──1 InstitutionType
 Institution 1──1 SchemaPack
 Institution 1──* User (via role assignment)
+Institution 1──* ExtracurricularOffering
 AcademicUnit 1──* Student (enrollment)
 AcademicUnit 1──* Teacher (assignment)
 Subject *──* AcademicUnit (curriculum)
+ExtracurricularOffering *──* Student (optional enrollment)
 Schedule 1──* Lesson
 Lesson *──1 Subject
 Lesson *──1 Teacher

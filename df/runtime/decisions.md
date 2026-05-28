@@ -144,5 +144,17 @@
   - Related task: `TASK-010`
   - Record: `df/artifacts/TASK-010/decision-024-on-demand-aws-github-actions-deployment.md`
 
+- `DECISION-025` - Dark Factory workstation automation will use Windows-first root Bash wrappers that delegate to a shared PowerShell desktop-automation helper for IntelliJ/JetBrains AI prompt startup and the explicit acknowledgement buttons `Keep All`, `Add to Git`, and `Continue`.
+  - Date: 2026-05-26
+  - Status: Accepted
+  - Related task: `TASK-012`
+  - Record: `df/artifacts/TASK-012/decision-025-dark-factory-ide-automation-launchers.md`
+
+- `DECISION-026` - `TASK-012` remains blocked until the JetBrains/Copilot stack exposes a positively verifiable prompt target on the supported workstation or a stronger desktop-automation dependency is explicitly approved and provisioned.
+  - Date: 2026-05-28
+  - Status: Accepted
+  - Related task: `TASK-012`
+  - Record: `df/artifacts/TASK-012/decision-026-blocked-pending-verifiable-copilot-surface.md`
+
 Use `df/templates/decision-record.md` for new decision records.
 

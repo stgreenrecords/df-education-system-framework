@@ -218,6 +218,35 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Role: sa
 - Reason: The user started work and the runtime board had no active tasks; STORY-220 is the highest-priority documented i18n backlog item and dependency root for later EPIC-22 stories. Refinement was skipped because the backlog story already has explicit, testable acceptance criteria.
 - Evidence: `df/backlog/user-stories.md`; `df/backlog/epics.md`; `df/artifacts/STORY-220/task.md`
+
+## 2026-05-26 local - State change
+
+- Task: TASK-011
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: data-engineer
+- Reason: Started user-requested data-engineering work to normalize full Poland RSPO institution registry into a country-agnostic dataset contract for homepage selector filtering.
+- Evidence: `data/list-of-schools-poland/rspo_2026_05_26.csv`; `df/artifacts/TASK-011/task.md`
+- Next: Produce normalized dataset, source map, and lane handoff evidence.
+
+## 2026-05-26 local - data-engineer - TASK-011
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Generated `56,029` normalized institution records from RSPO source into a country-agnostic dataset and documented traceability, transformation rules, and downstream persistence/UI integration dependencies.
+- Evidence: `data/list-of-schools-poland/institutions_pl_2026_05_26_country_agnostic.csv`; `df/artifacts/TASK-011/data/data-notes.md`; `df/artifacts/TASK-011/data/source-map.md`; `df/artifacts/TASK-011/data/handoff-to-qa.md`
+- Result: PASS — data package complete and ready for QA validation
+- Next: `qa` should verify data package correctness and guardrail compliance, then SA should route backend/frontend implementation for runtime DB persistence and homepage filtering.
+- Risks/blockers: Current runtime does not yet include an institution directory schema/table/API in implemented modules; backend/frontend work remains required for end-to-end behavior.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-011
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: data-engineer
+- Reason: Data package and evidence are complete in lane-owned artifacts.
+- Evidence: `df/artifacts/TASK-011/task.md`; `df/artifacts/TASK-011/data/data-notes.md`; `df/artifacts/TASK-011/data/source-map.md`; `df/artifacts/TASK-011/data/handoff-to-qa.md`
+- Next: QA reviews normalized dataset, source traceability, and country-agnostic compliance.
 - Next: SA documents architecture for translation persistence, fallback, caching, and audit.
 
 ## 2026-05-23 10:18 local - State change
@@ -1969,6 +1998,44 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Result: PASS
 - Next: New session required. `backend-dev` should implement the backend-only auth foundation for `STORY-080` and record focused verification evidence.
 
+## 2026-05-28 10:26 local - State change
+
+- Task: TASK-012
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: Started QA verification of the JetBrains launcher automation by reviewing the DevOps handoff/evidence and reproducing the supported Windows PowerShell launcher path on this workstation.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Execute dry-run vs live launcher verification, inspect the orchestrator/config, and record pass/fail evidence.
+
+## 2026-05-28 10:28 local - State change
+
+- Task: TASK-012
+- From: QA_IN_PROGRESS
+- To: QA_FAILED
+- Role: qa
+- Reason: QA reproduced a critical live failure on the supported PowerShell launcher path. The watcher started, but `devops/automation/jetbrains-agent-orchestrator.ps1` threw `Could not find a JetBrains AI prompt input element...` instead of submitting the initial prompt.
+- Evidence: `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\devops\automation\jetbrains-agent-orchestrator.ps1 -StopWatcher; .\call-start-factory.ps1`; PowerShell UIAutomation diagnostic against the detected `idea64` window
+- Next: Return the task to `devops` with reproduction steps and defect evidence.
+
+## 2026-05-28 10:28 local - State change
+
+- Task: TASK-012
+- From: QA_FAILED
+- To: RETURNED_TO_DEV
+- Role: qa
+- Reason: Rework is required because the supported live Windows PowerShell + JetBrains launcher path does not complete the required start-session prompt submission.
+- Evidence: `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `df/artifacts/TASK-012/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `devops` fixes the orchestrator prompt-input discovery/fallback path, reruns live validation, and re-hands off to QA.
+
+## 2026-05-28 10:28 local - qa - TASK-012
+
+- State: RETURNED_TO_DEV
+- Action: Independently reproduced the supported PowerShell launcher path. Dry-run routing still resolved `pickup new task and start to work`, but live `.\call-start-factory.ps1` failed after watcher startup because the orchestrator could not discover a JetBrains AI prompt input element on this workstation/IDE build. Also captured a UIAutomation diagnostic showing the active IntelliJ window exposed only one visible descendant (`ControlType.Pane` / `JBRCustomTitleBarControls`), leaving the current prompt-input selector path without a reachable target.
+- Evidence: `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `df/artifacts/TASK-012/handoffs.md`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1 -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\devops\automation\jetbrains-agent-orchestrator.ps1 -StopWatcher; .\call-start-factory.ps1`
+- Result: FAIL — returned to DevOps
+- Next: New session required. `devops` must harden live prompt submission for the documented Windows + JetBrains baseline and then return `TASK-012` to `qa` with fresh validation evidence.
+
 ## 2026-05-24 22:39 local - State change
 
 - Task: STORY-080
@@ -2932,4 +2999,307 @@ Use `df/templates/activity-log-entry.md` for new entries.
 - Reason: Architecture is complete and the task remains a single DevOps lane item with no blocking refinement questions.
 - Evidence: `df/artifacts/TASK-010/task.md`; `df/artifacts/TASK-010/solution-design.md`; `df/artifacts/TASK-010/handoffs.md`; `df/artifacts/TASK-010/decision-024-on-demand-aws-github-actions-deployment.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `df/runtime/decisions.md`
 - Next: `devops` should start implementation and create `df/artifacts/TASK-010/devops/dev-notes.md` before editing workflow/deployment files.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-010
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: devops
+- Reason: Started DevOps implementation of the manual GitHub Actions AWS deployment pipeline after confirming the accepted OCI and AWS Kubernetes baseline, the user-provided repository secrets model, and the relevant deployment/doc paths.
+- Evidence: `df/artifacts/TASK-010/task.md`; `df/artifacts/TASK-010/solution-design.md`; `df/artifacts/TASK-010/handoffs.md`; `.github/workflows/deploy-aws-on-demand.yml`; `docs/deploy-aws.md`; `devops/kubernetes/platform-core/render-aws-deployment.ps1`
+- Next: Implement the workflow/docs/render helper and capture the strongest safe local validation evidence before handing off to QA.
+
+## 2026-05-26 local - devops - TASK-010
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Implemented the manual AWS deployment workflow under `.github/workflows/`, added the AWS deployment runbook plus README links, introduced a reusable `render-aws-deployment.ps1` helper for deployment-time AWS overlay parameterization, and gathered local validation evidence for workflow structure, Maven packaging, and offline manifest rendering with and without an IRSA role ARN.
+- Evidence: `.github/workflows/deploy-aws-on-demand.yml`; `docs/deploy-aws.md`; `README.md`; `devops/kubernetes/platform-core/render-aws-deployment.ps1`; `devops/kubernetes/platform-core/README.md`; `df/artifacts/TASK-010/devops/dev-notes.md`; `df/artifacts/TASK-010/devops/handoff-to-qa.md`; `df/artifacts/TASK-010/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Result: PASS with environment limitations documented
+- Next: `qa` should verify the workflow against all five acceptance criteria and, if GitHub/AWS access is available, capture at least one `dry_run=true` execution and ideally one non-production live deployment run.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-010
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: devops
+- Reason: DevOps implementation and strongest safe local validation are complete; the task now has workflow/docs/render-helper evidence and a QA handoff.
+- Evidence: `df/artifacts/TASK-010/devops/dev-notes.md`; `df/artifacts/TASK-010/devops/handoff-to-qa.md`; `df/artifacts/TASK-010/task.md`; `df/artifacts/TASK-010/handoffs.md`; `.github/workflows/deploy-aws-on-demand.yml`; `docs/deploy-aws.md`; `devops/kubernetes/platform-core/render-aws-deployment.ps1`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `qa` should independently review the repository evidence and collect live workflow-run evidence if environment access allows.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-011
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: Started QA verification of the country-agnostic institution dataset package because it is the highest-priority QA-ready task on the runtime board.
+- Evidence: `df/artifacts/TASK-011/task.md`; `df/artifacts/TASK-011/data/data-notes.md`; `df/artifacts/TASK-011/data/source-map.md`; `df/artifacts/TASK-011/data/handoff-to-qa.md`; `df/runtime/board.md`; `df/runtime/data-engineer-board.md`
+- Next: Validate dataset structure, row count, source traceability, country-agnostic contract compliance, and downstream handoff completeness.
+
+## 2026-05-26 local - qa - TASK-011
+
+- State: QA_IN_PROGRESS -> READY_FOR_PO
+- Action: Verified the data-engineering package for the normalized Poland institution dataset. Confirmed the delivered CSV header covers the requested generic homepage filter fields, confirmed RSPO source traceability and retrieval date evidence, confirmed the country-agnostic contract and data-only boundary, and confirmed the handoff explicitly defers persistence/API/UI work to downstream implementation.
+- Evidence: `df/artifacts/TASK-011/qa-report.md`; `df/artifacts/TASK-011/task.md`; `df/artifacts/TASK-011/data/data-notes.md`; `df/artifacts/TASK-011/data/source-map.md`; `df/artifacts/TASK-011/data/handoff-to-qa.md`; `data/list-of-schools-poland/institution-directory-contract.md`; `data/list-of-schools-poland/institutions_pl_2026_05_26_country_agnostic.csv`; `df/runtime/board.md`; `df/runtime/data-engineer-board.md`
+- Result: PASS
+- Next: `po` should review whether the QA-approved data package is sufficient product-direction output for the later homepage-selector persistence/filter implementation work.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-011
+- From: QA_IN_PROGRESS
+- To: READY_FOR_PO
+- Role: qa
+- Reason: QA verification is complete and the data-only task satisfies its acceptance criteria with no defects.
+- Evidence: `df/artifacts/TASK-011/qa-report.md`; `df/artifacts/TASK-011/task.md`; `df/runtime/board.md`
+- Next: `po` reviews and accepts or rejects the task based on product-direction sufficiency and scope adherence.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-012
+- From: OPEN
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: Promoted the user's urgent request to automate Dark Factory launcher startup, role-script prompting, and recurring IntelliJ acknowledgements into a new task and started architecture because the work affects workstation automation, IDE interaction, shell entrypoints, and operational risk boundaries.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/solution-design.md`; `call-start-factory.bash`; `call-dev-backend.bash`; `call-dev-devops.bash`; `call-dev-frontend.bash`; `call-data-engineer.bash`; `call-qa.bash`; `call-po.bash`; `JETBRAINS_AI.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Complete the automation design, record the decision, and route the task to the appropriate delivery lane.
+
+## 2026-05-26 local - sa - TASK-012
+
+- State: ARCHITECTURE_IN_PROGRESS -> READY_FOR_DEV
+- Action: Completed the architecture package for the urgent Dark Factory workstation-automation request. Selected a DevOps-owned Windows-first Bash-wrapper + PowerShell desktop-automation approach that starts the initial `pickup new task and start to work` prompt, provides role-specific launcher prompts through the existing root `call-*.bash` files, and safely watches IntelliJ/JetBrains dialogs for `Keep All`, `Add to Git`, and `Continue`.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/solution-design.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/decision-025-dark-factory-ide-automation-launchers.md`; `call-start-factory.bash`; `call-dev-backend.bash`; `call-dev-devops.bash`; `call-dev-frontend.bash`; `call-data-engineer.bash`; `call-qa.bash`; `call-po.bash`; `JETBRAINS_AI.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `df/runtime/decisions.md`
+- Result: PASS
+- Next: New session required. `devops` should implement the launchers, shared automation helper, watcher safety constraints, and operator documentation, then hand off to QA.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-012
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_DEV
+- Role: sa
+- Reason: Architecture is complete and the task remains a single DevOps lane item with no blocking refinement questions.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/solution-design.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/decision-025-dark-factory-ide-automation-launchers.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `df/runtime/decisions.md`
+- Next: `devops` should start implementation and create `df/artifacts/TASK-012/devops/dev-notes.md` before editing the launcher or automation files.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-012
+- From: READY_FOR_DEV
+- To: DEV_IN_PROGRESS
+- Role: devops
+- Reason: Started DevOps implementation of the Dark Factory workstation automation flow after confirming the SA design, existing empty root launchers, current workspace state, and the requested IntelliJ acknowledgement allowlist.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/solution-design.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Implement the shared automation helper, wire the root `call-*.bash` launchers, and validate the prompt-launch plus watcher behavior using the strongest safe local checks.
+
+## 2026-05-26 local - devops - TASK-012
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Completed the Windows-first Dark Factory launcher automation flow by wiring the root `call-*.bash` scripts through a shared Git-Bash wrapper and PowerShell orchestrator, adding repository-owned prompt/watcher configuration, extending role coverage with dedicated `designer` and `sa` launchers, implementing the explicit `Keep All` / `Add to Git` / `Continue` watcher allowlist with debounce protection and watcher lifecycle management, and documenting operator usage/recovery in `docs/jetbrains-dark-factory-automation.md` plus `README.md`.
+- Evidence: `call-start-factory.bash`; `call-designer.bash`; `call-sa.bash`; `call-dev-backend.bash`; `call-dev-devops.bash`; `call-dev-frontend.bash`; `call-data-engineer.bash`; `call-qa.bash`; `call-po.bash`; `devops/automation/call-jetbrains-agent.bash`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `devops/automation/jetbrains-agent-config.json`; `docs/jetbrains-dark-factory-automation.md`; `README.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/handoffs.md`
+- Result: PASS with interactive IDE verification intentionally deferred to QA
+- Next: `qa` should rerun the Git Bash launcher dry-runs, inspect the watcher safety rules, and perform one interactive Windows + JetBrains verification pass for prompt submission plus `Keep All` / `Add to Git` / `Continue` auto-click behavior.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-012
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: devops
+- Reason: DevOps implementation and strongest safe local validation are complete; the task now has launcher/orchestrator/docs evidence and a QA handoff.
+- Evidence: `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/handoffs.md`; `call-start-factory.bash`; `call-designer.bash`; `call-sa.bash`; `call-dev-backend.bash`; `call-dev-devops.bash`; `call-dev-frontend.bash`; `call-data-engineer.bash`; `call-qa.bash`; `call-po.bash`; `devops/automation/call-jetbrains-agent.bash`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `devops/automation/jetbrains-agent-config.json`; `docs/jetbrains-dark-factory-automation.md`; `README.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `qa` should independently review the repository evidence and complete the remaining interactive JetBrains workstation verification.
+
+## 2026-05-26 local - devops - TASK-012
+
+- State: READY_FOR_QA
+- Action: Applied a follow-up launcher hardening fix after user feedback that `./call-start-factory.bash -DryRun -NoWatcher` opened Visual Studio Code on one workstation. The root `call-*.bash` launchers now invoke the shared helper through the active Bash interpreter explicitly instead of executing the nested `.bash` path directly, which avoids Windows/editor file-association behavior for the nested helper script.
+- Evidence: `call-start-factory.bash`; `call-designer.bash`; `call-sa.bash`; `call-dev-backend.bash`; `call-dev-devops.bash`; `call-dev-frontend.bash`; `call-data-engineer.bash`; `call-qa.bash`; `call-po.bash`; `docs/jetbrains-dark-factory-automation.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `C:\Program Files\Git\bin\bash.exe -lc 'cd "/c/Users/Viach/IdeaProjects/df-education-system-framework" && ./call-start-factory.bash -DryRun -NoWatcher'`; Git Bash dry-runs for all root launchers; `bash.exe -n` for launcher scripts; `pwsh -NoLogo -NoProfile -File .\devops\automation\jetbrains-agent-orchestrator.ps1 -Mode watch-only -DryRun -WatcherIterations 1`
+- Result: PASS — exact reported dry-run path now reaches the orchestrator without invoking editor file association
+- Next: `qa` should explicitly verify that the editor-opening regression is resolved on the supported workstation path as part of the existing `TASK-012` QA pass.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-012
+- From: READY_FOR_QA
+- To: DEV_IN_PROGRESS
+- Role: devops
+- Reason: User feedback confirmed the launcher was being run from a JetBrains PowerShell terminal, so DevOps resumed implementation to add a supported PowerShell-native launcher path instead of relying on `.bash` invocation from PowerShell.
+- Evidence: user terminal evidence showing PowerShell prompt plus Visual Studio Code startup logs; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Add root `.ps1` launchers and a shared PowerShell wrapper, then revalidate dry-run routing from PowerShell.
+
+## 2026-05-26 local - devops - TASK-012
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Added PowerShell-native root launchers (`call-start-factory.ps1`, `call-designer.ps1`, `call-sa.ps1`, `call-dev-backend.ps1`, `call-dev-devops.ps1`, `call-dev-frontend.ps1`, `call-data-engineer.ps1`, `call-qa.ps1`, `call-po.ps1`) plus `devops/automation/call-jetbrains-agent.ps1`, updated the docs to distinguish Git Bash vs PowerShell launcher usage, and validated that `./call-start-factory.ps1 -DryRun -NoWatcher` works from PowerShell without opening an editor.
+- Evidence: `call-start-factory.ps1`; `call-designer.ps1`; `call-sa.ps1`; `call-dev-backend.ps1`; `call-dev-devops.ps1`; `call-dev-frontend.ps1`; `call-data-engineer.ps1`; `call-qa.ps1`; `call-po.ps1`; `devops/automation/call-jetbrains-agent.ps1`; `docs/jetbrains-dark-factory-automation.md`; `README.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/handoffs.md`
+- Result: PASS — PowerShell terminals now have a repository-owned supported launcher path
+- Next: `qa` should verify both Git Bash `.bash` launchers and PowerShell `.ps1` launchers, then complete the remaining interactive JetBrains workstation verification.
+
+## 2026-05-26 local - State change
+
+- Task: TASK-012
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: devops
+- Reason: PowerShell-native launcher support and documentation are complete; Git Bash and PowerShell dry-run validation both passed.
+- Evidence: `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `call-start-factory.ps1`; `devops/automation/call-jetbrains-agent.ps1`; `docs/jetbrains-dark-factory-automation.md`; `README.md`; PowerShell and Git Bash dry-run validation commands
+- Next: `qa` should independently validate the terminal-specific launcher paths and finish the interactive JetBrains verification.
+
+## 2026-05-26 local - sa - Backlog addition
+
+- State: BACKLOG UPDATED
+- Action: Added a new backlog story for institution-level extracurricular and supplemental lesson offerings attached to schools/institutions, covering examples such as karate, martial arts, robotics, English reinforcement, additional math lessons, and other locally available programs. Also extended the school domain model with generic concepts for additional offerings, offering categories, and optional student enrollment so the capability is documented as data-driven rather than country-specific.
+- Evidence: `df/backlog/user-stories.md` (`STORY-095`); `df/backlog/domain-model.md`
+- Result: PASS
+- Next: Future SA/factory sessions can prioritize `STORY-095` when school-module roadmap sequencing reaches optional institution-managed offerings.
+
+## 2026-05-27 10:18 local - State change
+
+- Task: TASK-013
+- From: OPEN
+- To: NEEDS_ARCHITECTURE
+- Role: sa
+- Reason: The user explicitly requested a PowerPoint presentation explaining the project in detail; the task is documentation-only but still needs a structured artifact package and clear content plan.
+- Evidence: `df/artifacts/TASK-013/task.md`; `df/runtime/board.md`
+- Next: Create the solution design and presentation package.
+
+## 2026-05-27 10:18 local - State change
+
+- Task: TASK-013
+- From: NEEDS_ARCHITECTURE
+- To: ARCHITECTURE_IN_PROGRESS
+- Role: sa
+- Reason: SA started the documentation-owned design pass to define deck scope, evidence sources, output format, and regeneration approach.
+- Evidence: `df/artifacts/TASK-013/solution-design.md`
+- Next: Generate the `.pptx` deck and supporting source files.
+
+## 2026-05-27 10:18 local - sa - TASK-013
+
+- State: ARCHITECTURE_IN_PROGRESS -> READY_FOR_QA
+- Action: Created a presentation package under `docs/presentations/education-system-framework-project-overview/`, added a generator script plus README/requirements/outline, and generated a 15-slide PowerPoint deck grounded in the current product vision, architecture, runtime board, decisions, risks, local run guide, and AWS deployment guide.
+- Evidence: `df/artifacts/TASK-013/task.md`; `df/artifacts/TASK-013/solution-design.md`; `df/artifacts/TASK-013/handoffs.md`; `docs/presentations/education-system-framework-project-overview/README.md`; `docs/presentations/education-system-framework-project-overview/requirements.txt`; `docs/presentations/education-system-framework-project-overview/deck-outline.md`; `docs/presentations/education-system-framework-project-overview/generate_presentation.py`; `docs/presentations/education-system-framework-project-overview/education-system-framework-project-overview-2026-05-27.pptx`; `python .\docs\presentations\education-system-framework-project-overview\generate_presentation.py`; `python -c "from pathlib import Path; from pptx import Presentation; p=Path(r'C:\Users\Viach\IdeaProjects\df-education-system-framework\docs\presentations\education-system-framework-project-overview\education-system-framework-project-overview-2026-05-27.pptx'); prs=Presentation(p); print(f'exists={p.exists()}'); print(f'slides={len(prs.slides)}')"`
+- Result: PASS
+- Next: New session required. `qa` should verify the generated deck content and regeneration path for `TASK-013`.
+
+## 2026-05-27 10:18 local - State change
+
+- Task: TASK-013
+- From: ARCHITECTURE_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: sa
+- Reason: The documentation-only presentation deliverable is complete and ready for independent QA review; no delivery lane applies.
+- Evidence: `df/artifacts/TASK-013/handoffs.md`; `docs/presentations/education-system-framework-project-overview/education-system-framework-project-overview-2026-05-27.pptx`
+- Next: `qa` should validate the deck content, generated file, and regeneration instructions.
+
+
+## 2026-05-27 local - sa - TASK-013
+
+- State: READY_FOR_QA -> READY_FOR_QA
+- Action: Revised the presentation package to generate a second PowerPoint deck in Russian for executive/business discussions, updated the README/outline/task artifacts, and added the requested slide about outsourcing instability and the strategic value of building an own globally relevant product.
+- Evidence: `df/artifacts/TASK-013/task.md`; `df/artifacts/TASK-013/solution-design.md`; `df/artifacts/TASK-013/handoffs.md`; `df/runtime/board.md`; `docs/presentations/education-system-framework-project-overview/README.md`; `docs/presentations/education-system-framework-project-overview/deck-outline.md`; `docs/presentations/education-system-framework-project-overview/generate_presentation.py`; `docs/presentations/education-system-framework-project-overview/education-system-framework-executive-ru-2026-05-27.pptx`; `python .\docs\presentations\education-system-framework-project-overview\generate_presentation.py`; `python -c "from pathlib import Path; from pptx import Presentation; base=Path(r'C:\Users\Viach\IdeaProjects\df-education-system-framework\docs\presentations\education-system-framework-project-overview'); files=[base/'education-system-framework-project-overview-2026-05-27.pptx', base/'education-system-framework-executive-ru-2026-05-27.pptx']; [print(f'{p.name}: exists={p.exists()} slides={len(Presentation(p).slides)}') for p in files]"`
+- Result: PASS
+- Next: New session required. `qa` should rerun the generator, verify both decks open correctly, and confirm the Russian executive deck stays business-focused without overstating current delivery status.
+
+## 2026-05-27 local - sa - TASK-013
+
+- State: READY_FOR_QA -> READY_FOR_QA
+- Action: Tightened the Russian executive deck so it uses shorter bullet-point wording, added a separate general project-description slide plus a high-level technical overview slide, regenerated the deck, and updated the package/task docs to match the new 12-slide structure.
+- Evidence: `df/artifacts/TASK-013/task.md`; `df/artifacts/TASK-013/solution-design.md`; `df/artifacts/TASK-013/handoffs.md`; `df/runtime/board.md`; `docs/presentations/education-system-framework-project-overview/README.md`; `docs/presentations/education-system-framework-project-overview/deck-outline.md`; `docs/presentations/education-system-framework-project-overview/generate_presentation.py`; `docs/presentations/education-system-framework-project-overview/education-system-framework-executive-ru-2026-05-27.pptx`; `python .\docs\presentations\education-system-framework-project-overview\generate_presentation.py`; `python -c "from pathlib import Path; from pptx import Presentation; p=Path(r'C:\Users\Viach\IdeaProjects\df-education-system-framework\docs\presentations\education-system-framework-project-overview\education-system-framework-executive-ru-2026-05-27.pptx'); prs=Presentation(p); print(f'exists={p.exists()}'); print(f'slides={len(prs.slides)}'); print([next((shape.text.strip().splitlines()[0] for shape in slide.shapes if hasattr(shape, 'text') and shape.text.strip()), '') for slide in prs.slides])"`
+- Result: PASS
+- Next: New session required. `qa` should verify the concise bullet-driven wording, confirm the added general technical overview slide, and ensure the executive deck still reflects repository-grounded scope.
+
+## 2026-05-28 local - State change
+
+- Task: TASK-012
+- From: RETURNED_TO_DEV
+- To: DEV_IN_PROGRESS
+- Role: devops
+- Reason: Started DevOps rework after QA reproduced a live failure on the supported Windows PowerShell launcher path and returned the task with a critical prompt-submission defect.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/defects.md`; `df/artifacts/TASK-012/qa-report.md`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: Add a safe prompt-submission fallback that works when JetBrains exposes no discoverable prompt input through UI Automation, rerun live PowerShell validation, and prepare a fresh QA handoff.
+
+## 2026-05-28 local - State change
+
+- Task: TASK-012
+- From: DEV_IN_PROGRESS
+- To: READY_FOR_QA
+- Role: devops
+- Reason: DevOps rework and live workstation validation are complete. The supported Windows PowerShell launcher path now uses a repository-owned keyboard fallback when UI Automation cannot discover the JetBrains AI input.
+- Evidence: `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/handoffs.md`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `devops/automation/jetbrains-agent-config.json`; `docs/jetbrains-dark-factory-automation.md`; `README.md`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-dev-devops.ps1`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`
+- Next: `qa` should rerun the previously failing live PowerShell path, confirm the keyboard fallback lands the prompt in the JetBrains AI chat surface, and verify the watcher allowlist remains restricted to `Keep All`, `Add to Git`, and `Continue`.
+
+## 2026-05-28 local - devops - TASK-012
+
+- State: DEV_IN_PROGRESS -> READY_FOR_QA
+- Action: Fixed the supported Windows PowerShell launcher failure by keeping the existing UIAutomation-first prompt-discovery path but adding a repository-owned keyboard fallback in `devops/automation/jetbrains-agent-orchestrator.ps1` and `devops/automation/jetbrains-agent-config.json`. The fallback opens JetBrains action search, invokes repository-configured AI/chat commands, and pastes/submits the prompt when the current IntelliJ 2025.3.4 workstation exposes no discoverable AI input element through UI Automation. Also refreshed the operator docs and QA handoff, reran dry-run validation, reran live `call-start-factory.ps1` and `call-dev-devops.ps1`, and confirmed both paths now complete successfully with keyboard-fallback submission logged.
+- Evidence: `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/task.md`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `devops/automation/jetbrains-agent-config.json`; `docs/jetbrains-dark-factory-automation.md`; `README.md`; `[System.Management.Automation.Language.Parser]::ParseFile(...)`; `pwsh -NoLogo -NoProfile -File .\devops\automation\jetbrains-agent-orchestrator.ps1 -Mode start-factory -DryRun -NoWatcher`; `pwsh -NoLogo -NoProfile -File .\devops\automation\jetbrains-agent-orchestrator.ps1 -Mode role-devops -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-dev-devops.ps1`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`
+- Result: PASS — the previously failing supported PowerShell launcher path now completes on this workstation without the old prompt-input exception
+- Next: New session required. `qa` should independently retest `TASK-012` and either pass it to `po` or return it with new defect evidence.
+
+## 2026-05-28 local - State change
+
+- Task: TASK-012
+- From: READY_FOR_QA
+- To: QA_IN_PROGRESS
+- Role: qa
+- Reason: Started QA retest after the DevOps keyboard-fallback rework and reviewed the refreshed handoff, launcher log, and live workstation evidence.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/devops/handoff-to-qa.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/qa-report.md`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1 -DryRun -NoWatcher`
+- Next: Reconfirm dry-run routing, inspect the latest live PowerShell evidence, and verify whether the prompt actually lands in the JetBrains AI chat surface.
+
+## 2026-05-28 local - State change
+
+- Task: TASK-012
+- From: QA_IN_PROGRESS
+- To: QA_FAILED
+- Role: qa
+- Reason: The post-rework live launcher still fails acceptance. The earlier prompt-input exception no longer appears, but the keyboard fallback can paste `pickup new task and start to work` into IntelliJ Settings -> Plugins search while the orchestrator log still reports success.
+- Evidence: `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`; user-provided screenshot from the 2026-05-28 QA retest showing IntelliJ Settings -> Plugins with the prompt text in the search field
+- Next: Move the task back to `RETURNED_TO_DEV` with actionable defect details for deterministic prompt targeting and verification.
+
+## 2026-05-28 local - State change
+
+- Task: TASK-012
+- From: QA_FAILED
+- To: RETURNED_TO_DEV
+- Role: qa
+- Reason: Returned `TASK-012` to `devops` because the supported Windows PowerShell launcher still does not start the JetBrains AI session end-to-end on the documented baseline.
+- Evidence: `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `df/artifacts/TASK-012/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`
+- Next: `devops` should replace the ambiguous keyboard fallback with deterministic AI-chat targeting, add positive verification of the target surface, rerun the live PowerShell path, and return the task to QA with fresh evidence.
+
+## 2026-05-28 local - qa - TASK-012
+
+- State: QA_IN_PROGRESS -> RETURNED_TO_DEV
+- Action: Retested the DevOps keyboard-fallback rework by rerunning the supported PowerShell dry-run launcher, correlating the latest live launcher log, reviewing the user-provided interactive screenshot, confirming the watcher allowlist stayed restricted to `Keep All`, `Add to Git`, and `Continue`, and cleaning up the leftover watcher after the repro. The previous prompt-input exception was mitigated, but the latest live run still failed because the fallback pasted the prompt into IntelliJ Settings -> Plugins search instead of the JetBrains AI chat input while logging success.
+- Evidence: `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/task.md`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1 -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; Get-Content -Path ".dark-factory\automation\jetbrains-agent-orchestrator.log" -Tail 40`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; powershell.exe -NoLogo -NoProfile -ExecutionPolicy Bypass -File .\devops\automation\jetbrains-agent-orchestrator.ps1 -StopWatcher`
+- Result: FAIL
+- Next: New session required. `devops` should fix the fallback targeting/verification logic, rerun the supported live PowerShell path, and hand the task back to QA with evidence that the prompt really lands in JetBrains AI chat.
+
+## 2026-05-28 local - State change
+
+- Task: TASK-012
+- From: RETURNED_TO_DEV
+- To: BLOCKED
+- Role: devops
+- Reason: DevOps replaced the ambiguous GitHub Copilot fallback labels with the exact installed plugin actions, added focus-traversal retries and fail-safe verification, and reran the supported live PowerShell path. The launcher now reaches deterministic Copilot actions without false-positive success logs, but the current IntelliJ/Copilot widget still exposes no machine-verifiable prompt input after those actions run on the documented workstation baseline.
+- Evidence: `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/task.md`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `devops/automation/jetbrains-agent-config.json`; `docs/jetbrains-dark-factory-automation.md`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1 -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-dev-devops.ps1 -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1`
+- Next: New session required. `sa` should review the blocker evidence and decide whether to keep the task blocked pending an IDE/provider change or route an alternate approved automation approach that can positively verify the Copilot prompt target on this workstation.
+
+## 2026-05-28 local - devops - TASK-012
+
+- State: RETURNED_TO_DEV -> BLOCKED
+- Action: Reworked the keyboard fallback to use the installed GitHub Copilot plugin's exact action titles (`Copilot: Open Chat`, `New Chat Session`) instead of ambiguous guesses, added configurable focus-traversal retries within the opened chat tool window, refreshed the operator docs, reran dry-run routing and parser validation, and reran the supported live PowerShell path. The new logic successfully eliminates the earlier false-success condition, but the current IntelliJ 2025.3.4 / Copilot widget still does not expose a clipboard-verifiable prompt control after those exact actions run, so the launcher now fails safe and the task is blocked.
+- Evidence: `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/handoffs.md`; `df/artifacts/TASK-012/task.md`; `devops/automation/jetbrains-agent-orchestrator.ps1`; `devops/automation/jetbrains-agent-config.json`; `docs/jetbrains-dark-factory-automation.md`; `C:\Users\Viach\AppData\Roaming\JetBrains\IntelliJIdea2025.3\plugins\github-copilot-intellij\lib\core.jar`; `.dark-factory/automation/jetbrains-agent-orchestrator.log`; `[System.Management.Automation.Language.Parser]::ParseFile(...)`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1 -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-dev-devops.ps1 -DryRun -NoWatcher`; `Set-Location "C:\Users\Viach\IdeaProjects\df-education-system-framework"; .\call-start-factory.ps1`
+- Result: BLOCKED
+- Next: New session required. `sa` should review whether the task should wait for a provider/IDE automation surface change or be rerouted to an alternate approved desktop-automation approach.
+
+## 2026-05-28 12:15 local - sa - TASK-012
+
+- State: BLOCKED -> BLOCKED
+- Action: Reviewed the latest QA + DevOps blocker evidence, the current launcher/design artifacts, and the workstation tool availability for alternate automation. Accepted `DECISION-026`: keep `TASK-012` blocked because the current IntelliJ IDEA 2025.3.4 + GitHub Copilot baseline still exposes no positively verifiable prompt target for the live launcher path, and no stronger approved desktop-automation executable is currently provisioned on this workstation.
+- Evidence: `df/artifacts/TASK-012/task.md`; `df/artifacts/TASK-012/solution-design.md`; `df/artifacts/TASK-012/decision-026-blocked-pending-verifiable-copilot-surface.md`; `df/artifacts/TASK-012/qa-report.md`; `df/artifacts/TASK-012/defects.md`; `df/artifacts/TASK-012/devops/dev-notes.md`; `df/artifacts/TASK-012/handoffs.md`; `df/runtime/board.md`; `df/runtime/devops-board.md`; `df/runtime/decisions.md`; `df/runtime/risks.md`; `Get-Command AutoHotkey, AutoHotkey64, WinAppDriver, pywinauto, python, pwsh -ErrorAction SilentlyContinue`
+- Result: BLOCKED
+- Next: Human / workstation owner should either update the JetBrains/Copilot stack so the AI chat input becomes verifiable or explicitly approve and provision a stronger desktop-automation dependency. After that, start a new `sa` session to reroute the task.
 

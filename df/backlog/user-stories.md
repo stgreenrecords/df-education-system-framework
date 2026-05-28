@@ -549,6 +549,28 @@ Acceptance criteria:
 
 ---
 
+### STORY-095 — Implement institution-level extracurricular and supplemental lesson offerings
+
+Type: Story
+Owner role: Dev
+Priority: High
+Phase: 3
+Epic: EPIC-09
+Status: Draft
+Dependencies: STORY-090, STORY-091, STORY-092
+
+Description:
+Allow each school/institution to manage additional non-core and supplemental lesson offerings attached to that institution, such as karate, martial arts, robotics, English reinforcement, additional math lessons, and other locally available programs. Business value: this lets schools present a fuller educational offer, supports parent/student choice, and creates a reusable framework path for optional activities without country-specific code.
+
+Acceptance criteria:
+- Given an institution admin, when they create or update an additional offering, then they can define at least: offering name, area/category, description, target grade/age range, optional schedule details, capacity, active/inactive status, and whether the offering is extracurricular or supplemental academic support
+- Given an institution has additional offerings, when parents, students, or staff view the institution profile or relevant catalog/API, then the currently active offerings are listed with their main descriptive details
+- Given offerings such as karate, martial arts, robotics, English reinforcement, additional math lessons, or another institution-defined activity, when configured, then they are represented as data/configuration entries rather than hard-coded special-case behavior
+- Given an offering is no longer available, when an institution admin deactivates it, then it no longer appears in the active offering list but remains auditable/historically traceable
+- Given the framework is reviewed, when this capability is implemented, then it supports arbitrary institution-defined additional lessons/sections without country-specific code branches or schema changes per activity type
+
+---
+
 ## EPIC-12 — Meal and Catering Management
 
 ### STORY-120 — Implement institution-level catering configuration
